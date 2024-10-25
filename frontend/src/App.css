@@ -15,3 +15,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #4db818;
 }
+
+.ant-progress-text {
+  color: white !important;
+}

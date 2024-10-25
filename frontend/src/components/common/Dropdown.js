@@ -5,6 +5,7 @@ export const Dropdown = ({ value, options, handleChange, placeholder }) => {
   return (
     <Select
       defaultValue={placeholder}
+      placeholder={placeholder}
       style={{
         display: "block",
       }}

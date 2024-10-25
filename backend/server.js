@@ -5,6 +5,7 @@ const passport = require("passport");
 const deviceRoutes = require("./routes/deviceRoutes");
 const sequenceRoutes = require("./routes/sequenceRoutes");
 const analogSettingsRoutes = require("./routes/analogSettingsRoutes");
+const groupRoutes = require("./routes/groupsRoutes");
 require("dotenv").config();
 require("./config/passport")(passport);
 
@@ -18,6 +19,7 @@ app.use(passport.initialize());
 app.use("/api/devices", deviceRoutes);
 app.use("/api/sequence", sequenceRoutes);
 app.use("/api/analog-settings", analogSettingsRoutes);
+app.use("/api/groups", groupRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

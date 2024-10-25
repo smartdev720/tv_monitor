@@ -7,17 +7,17 @@ export const CustomModal = ({
   confirmLoading,
   handleCancel,
   title,
-  Children,
+  children,
 }) => {
   return (
     <Modal
-      title="Title"
+      title={title}
       open={open}
       onOk={handleOk}
       confirmLoading={confirmLoading}
       onCancel={handleCancel}
     >
-      <Children />
+      {children}
     </Modal>
   );
 };

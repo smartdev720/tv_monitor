@@ -10,7 +10,7 @@ const navMenu = [
   { label: "DVB-C setting", path: "/dvb-c-setting" },
   { label: "IPTV setting", path: "/iptv-setting" },
   { label: "Sequence", path: "/sequence" },
-  { label: "Group settings", path: "/group-settings" },
+  { label: "Groups", path: "/groups" },
   { label: "Group commands", path: "/group-commands" },
 ];
 

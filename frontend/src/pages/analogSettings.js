@@ -1,16 +1,31 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Row, Col, Button, Table, Input, Checkbox, Flex } from "antd";
-import { Dropdown, Spinner, VideoPlayer } from "../components/common";
+import { Row, Col, Button, Table, Input, Progress, Radio } from "antd";
+import {
+  CustomModal,
+  Dropdown,
+  InputField,
+  Spinner,
+  VideoPlayer,
+} from "../components/common";
 import { fetchAllDevices, fetchAnalogSettingsByDeviceId } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
-import {} from "@ant-design/icons";
+import { EditOutlined, SaveOutlined, SendOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
 
 export const AnalogSettings = () => {
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const [devicesOptions, setDevicesOptions] = useState([]);
   const [currentDevice, setCurrentDevice] = useState({});
   const [dataSource, setDataSource] = useState([]);
+  const [selectedRowKey, setSelectedRowKey] = useState(null);
+  const [selectedRow, setSelectedRow] = useState({});
+  const [editInput, setEditInput] = useState({});
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [pwrPercent, setPwrPercent] = useState(0);
+  const [standartDropdownValue, setStandartDropdownValue] = useState("");
+  const [activeDropdownValue, setActiveDropdownValue] = useState("");
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
@@ -27,7 +42,7 @@ export const AnalogSettings = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     getAllDevices();
@@ -51,56 +66,52 @@ export const AnalogSettings = () => {
       const response = await fetchAnalogSettingsByDeviceId(value);
       if (response.ok) {
         const { data } = response;
-        console.log(data);
         const ds = data.map((dt) => ({
           key: dt.id,
           logo: (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Checkbox />
-              <span style={{ marginRight: 10 }}>
-                logos/{dt.program_name ? dt.program_name : "nologo.png"}
-              </span>
-            </div>
+            <span style={{ marginRight: 10 }}>
+              logos/{dt.program_name ? dt.program_name : "nologo.png"}
+            </span>
           ),
           program_name: dt.program_name,
           frequency: dt.frerquency,
           standart: dt.standart,
-          active: (
-            <Button
-              style={{ width: 20, height: 33, borderRadius: "50%" }}
-              color={dt.active && dt.active === 1 ? "primary" : "danger"}
-              variant="solid"
-            />
-          ),
-          pwr: (
-            <Button
-              style={{ width: 20, height: 33, borderRadius: "50%" }}
-              color={dt.pwr ? "primary" : "danger"}
-              variant="solid"
-            />
-          ),
+          active: dt.active,
+          pwr: dt.pwr,
         }));
         setDataSource(ds);
+        setEditInput({});
+        setSelectedRow({});
+        setSelectedRowKey("");
       }
     } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const defaultColumns = [
+  const handleRowSelect = (key, record) => {
+    setSelectedRowKey(key === selectedRowKey ? null : key);
+    setSelectedRow(record);
+  };
+
+  const columns = [
+    {
+      title: "Select",
+      render: (_, record) => (
+        <Radio
+          checked={selectedRowKey === record.key}
+          onChange={() => handleRowSelect(record.key, record)}
+        />
+      ),
+    },
     {
       title: "Logo",
       dataIndex: "logo",
     },
     {
-      title: "Program name",
+      title: "Program Name",
       dataIndex: "program_name",
       editable: true,
     },
@@ -110,70 +121,110 @@ export const AnalogSettings = () => {
       editable: true,
     },
     {
-      title: "Standart",
+      title: "Standard",
       dataIndex: "standart",
       editable: true,
     },
     {
       title: "Active",
       dataIndex: "active",
+      render: (active) => (
+        <Button
+          style={{ width: 20, height: 33, borderRadius: "50%" }}
+          color={active && active === 1 ? "primary" : "danger"}
+          variant="solid"
+        />
+      ),
     },
     {
       title: "PWR",
       dataIndex: "pwr",
+      render: (pwr) => (
+        <Button
+          style={{ width: 20, height: 33, borderRadius: "50%" }}
+          color={pwr ? "primary" : "danger"}
+          variant="solid"
+        />
+      ),
     },
   ];
 
-  const columns = defaultColumns.map((col) => {
-    if (!col.editable && !col.checkbox) {
-      return col;
-    }
-    return {
-      ...col,
-      render: (_, record) => (
-        <Input
-          value={record[col.dataIndex]}
-          onChange={(e) =>
-            handleRowChange(e.target.value, record.key, col.dataIndex)
-          }
-          disabled
-        />
-      ),
-    };
-  });
+  const standartDropdownOptions = [
+    { value: "1", label: "M/N" },
+    { value: "2", label: "B" },
+    { value: "3", label: "G/H" },
+    { value: "4", label: "I" },
+    { value: "5", label: "D/K" },
+  ];
 
-  const handleRowChange = (value, key, dataIndex) => {
-    setDataSource((prevData) =>
-      prevData.map((item) =>
-        item.key === key ? { ...item, [dataIndex]: value } : item
-      )
-    );
-  };
+  const activeDropdownOptions = [
+    { value: "0", label: "0" },
+    { value: "1", label: "1" },
+  ];
+
+  const handleStandartChange = (value) => setStandartDropdownValue(value);
+
+  const handleActiveChange = (value) => setActiveDropdownValue(value);
 
   const validateInputs = (frequency, standard, active, programName) => {
     const errors = {};
+
     const frequencyPattern = /^0[0-9]{5}$/;
     if (!frequencyPattern.test(frequency)) {
       errors.frequency =
         "Frequency must be a 6-digit string starting with 0 (e.g., 045000).";
     }
+
     const validStandards = ["0", "1", "2", "3", "4"];
     if (!validStandards.includes(standard)) {
       errors.standard =
         "Standard must be one of the following: 0 (M/N), 1 (B), 2 (G/H), 3 (I), 4 (D/K).";
     }
+
     if (!programName || programName.trim() === "") {
       errors.programName = "Program name is required.";
     }
+
     return errors;
   };
 
-  useEffect(() => {
-    if (currentDevice.id) {
-      if (!dataSource.some((ds) => ds.key === currentDevice.id)) {
-      }
+  const handleEditChange = (e) =>
+    setEditInput({ ...editInput, [e.target.name]: e.target.value });
+
+  const handleEdit = () => {
+    if (selectedRow.key) {
+      setOpen(true);
+      setEditInput(selectedRow);
+    } else {
+      toast.warn("Please select a row on the table");
     }
-  }, [currentDevice.id]);
+  };
+
+  const handleEditOk = async () => {
+    try {
+      setConfirmLoading(true);
+      const { frequency, standart, active, program_name } = editInput;
+      const validationErrors = validateInputs(
+        frequency,
+        standart,
+        active,
+        program_name
+      );
+      if (Object.keys(validationErrors).length > 0) {
+        toast.error("Please input the correct values");
+      } else {
+        const transferedData = {
+          device_id: currentDevice.id,
+          analog_settings_id: editInput.key,
+        };
+        setOpen(false);
+        setEditInput({});
+      }
+    } catch (err) {
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -186,22 +237,22 @@ export const AnalogSettings = () => {
           <Dropdown
             options={devicesOptions}
             handleChange={handleDeviceChange}
-            placeholder="devices"
+            placeholder="Devices"
             value={currentDevice.id}
           />
         </Col>
         <Col span={4}>
           <Input
-            placeholder="device name"
-            value={currentDevice.name && currentDevice.name}
+            placeholder="Device Name"
+            value={currentDevice.name}
             disabled
             style={{ color: "black" }}
           />
         </Col>
         <Col span={4}>
           <Input
-            placeholder="device place"
-            value={currentDevice.place && currentDevice.place}
+            placeholder="Device Place"
+            value={currentDevice.place}
             disabled
             style={{ color: "black" }}
           />
@@ -246,9 +297,91 @@ export const AnalogSettings = () => {
             >
               <VideoPlayer videoSrc="" />
             </div>
+            <div style={{ padding: 10, marginTop: 30 }}>
+              <Progress
+                percent={pwrPercent}
+                percentPosition={{ align: "center", type: "inner" }}
+                size={["100%", 20]}
+                strokeColor="#4db818"
+                style={{ color: "white" }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: 20,
+                padding: 10,
+              }}
+            >
+              <Button
+                icon={<EditOutlined />}
+                iconPosition="end"
+                variant="solid"
+                color="primary"
+                onClick={handleEdit}
+                style={{ marginRight: 20 }}
+              >
+                Edit
+              </Button>
+              <Button
+                icon={<SendOutlined />}
+                iconPosition="end"
+                variant="solid"
+                color="primary"
+                style={{ marginLeft: 20 }}
+              >
+                Save
+              </Button>
+            </div>
           </Col>
         </Row>
       </div>
+      <CustomModal
+        open={open}
+        handleCancel={() => setOpen(false)}
+        title="Analog Setting Edit"
+        confirmLoading={confirmLoading}
+        handleOk={handleEditOk}
+      >
+        <div style={{ marginTop: 30 }}>
+          <InputField
+            name="frequency"
+            placeholder="Frequency"
+            value={editInput.frequency}
+            onChange={handleEditChange}
+          />
+          <div style={{ marginTop: 20 }}>
+            <div style={{ marginBottom: 5 }}>
+              <label style={{ fontSize: "1em" }}>Standart</label>
+            </div>
+            <Dropdown
+              options={standartDropdownOptions}
+              placeholder="Standart"
+              handleChange={handleStandartChange}
+              value={standartDropdownValue}
+            />
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <div style={{ marginBottom: 5 }}>
+              <label style={{ fontSize: "1em" }}>Active</label>
+            </div>
+            <Dropdown
+              options={activeDropdownOptions}
+              placeholder="Active"
+              handleChange={handleActiveChange}
+              value={activeDropdownValue}
+            />
+          </div>
+          <InputField
+            name="program_name"
+            placeholder="Program name"
+            value={editInput.program_name}
+            onChange={handleEditChange}
+          />
+        </div>
+      </CustomModal>
     </div>
   );
 };
