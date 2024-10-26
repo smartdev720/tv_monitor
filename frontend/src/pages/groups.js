@@ -1,44 +1,115 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Col, Row, Table } from "antd";
-import { Spinner, Dropdown } from "../components/common";
-import {} from "@ant-design/icons";
+import { Button, Col, Radio, Row, Table, message } from "antd";
 import {
+  Spinner,
+  Dropdown,
+  CustomModal,
+  InputField,
+} from "../components/common";
+import {
+  ArrowRightOutlined,
+  DeleteRowOutlined,
+  SaveOutlined,
+  UsergroupAddOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import {
+  addNewGroup,
+  fetchAllChannels,
   fetchAllDevices,
   fetchAllGroups,
   fetchSelectedCommands,
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { setDevices } from "../store/slices/devicesSlice";
-import { convertTVType } from "../constant/func";
+import { setChannels } from "../store/slices/channelsSlice";
+import { convertTVType, convertTVTypeToType } from "../constant/func";
 
 export const Groups = () => {
   const [loading, setLoading] = useState(false);
   const [groupsDataSource, setGroupsDataSource] = useState([]);
   const [deviceOptions, setDevicesOptions] = useState([]);
+  const [channelsOptions, setChannelsOptions] = useState([]);
+  const [channleDropdownValue, setChannelDropdownValue] = useState("");
   const [currentDevice, setCurrentDevice] = useState({});
   const [tvTypeDropdownValue, setTvTypeDropdownValue] = useState("");
   const [commandsDataSource, setCommandsDataSource] = useState([]);
+  const [groupSelectedRowKey, setGroupSelectedRowKey] = useState("");
+  const [groupSelectedRow, setGroupSelectedRow] = useState({});
+  const [commandSelectedRowKey, setCommandSelectedRowKey] = useState("");
+  const [commandSelectedRow, setCommandSelectedRow] = useState({});
+  const [selectedGroup, setSelectedGroup] = useState({});
+  const [completedCommandDataSource, setCompletedCommandDataSource] = useState(
+    []
+  );
+  const [completedCommandSelectedRowKey, setCompletedCommandSelectedRowKey] =
+    useState("");
+  const [completedCommandSelectedRow, setCompletedCommandSelectedRow] =
+    useState({});
+  const [open, setOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [modalDeviceDropdownValue, setModalDeviceDropdownValue] = useState("");
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { channels } = useSelector((state) => state.channels);
+
+  const handleGroupsRowSelect = (key, record) => {
+    setGroupSelectedRowKey(key === groupSelectedRowKey ? null : key);
+    setGroupSelectedRow(record);
+  };
+
+  const handleCommandsRowSelect = (key, record) => {
+    setCommandSelectedRowKey(key === commandSelectedRowKey ? null : key);
+    setCommandSelectedRow(record);
+  };
+
+  const handleCompletedCommandsRowSelect = (key, record) => {
+    setCompletedCommandSelectedRowKey(
+      key === completedCommandSelectedRowKey ? null : key
+    );
+    setCompletedCommandSelectedRow(record);
+  };
 
   const groupsColumn = [
     {
+      title: "Select",
+      render: (_, record) => (
+        <Radio
+          checked={groupSelectedRowKey === record.key}
+          onChange={() => handleGroupsRowSelect(record.key, record)}
+        />
+      ),
+    },
+    {
       title: "No",
       dataIndex: "no",
+    },
+    {
+      title: "Group name",
+      dataIndex: "name",
     },
     {
       title: "Channel",
       dataIndex: "channel",
     },
     {
-      title: "Group name",
-      dataIndex: "name",
+      title: "",
+      dataIndex: "model_id",
     },
   ];
 
   const commandsColumn = [
+    {
+      title: "Select",
+      render: (_, record) => (
+        <Radio
+          checked={commandSelectedRowKey === record.key}
+          onChange={() => handleCommandsRowSelect(record.key, record)}
+        />
+      ),
+    },
     {
       title: "Logo",
       dataIndex: "logo",
@@ -46,6 +117,30 @@ export const Groups = () => {
     {
       title: "Service name",
       dataIndex: "service_name",
+    },
+  ];
+
+  const completedCommandColumn = [
+    {
+      title: "Select",
+      render: (_, record) => (
+        <Radio
+          checked={completedCommandSelectedRowKey === record.key}
+          onChange={() => handleCompletedCommandsRowSelect(record.key, record)}
+        />
+      ),
+    },
+    {
+      title: "TV type",
+      dataIndex: "tvType",
+    },
+    {
+      title: "Device",
+      dataIndex: "device",
+    },
+    {
+      title: "Channel",
+      dataIndex: "channel_name",
     },
   ];
 
@@ -68,11 +163,12 @@ export const Groups = () => {
           no: index + 1,
           channel: dt.channel,
           name: dt.name,
+          model_id: dt.model_id,
         }));
         setGroupsDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -87,6 +183,20 @@ export const Groups = () => {
       }
     } catch (err) {
       console.error("Server error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getAllChannels = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetchAllChannels();
+      if (response.ok) {
+        dispatch(setChannels(response.data));
+      }
+    } catch (err) {
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -109,7 +219,7 @@ export const Groups = () => {
         setCommandsDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -130,20 +240,115 @@ export const Groups = () => {
     }
   };
 
+  const handleChannelDropdown = (value) => setChannelDropdownValue(value);
+
   useEffect(() => {
     getAllGroups();
     getAllDevices();
-  }, [getAllDevices, getAllGroups]);
+    getAllChannels();
+  }, [getAllDevices, getAllGroups, getAllChannels]);
 
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
         value: device.id,
-        label: device.id,
+        label: device.name,
       }));
       setDevicesOptions(deviceOpts);
     }
   }, [devices]);
+
+  useEffect(() => {
+    if (channels.length > 0) {
+      const channelOpts = channels.map((ch) => ({
+        value: ch.id,
+        label: ch.name,
+      }));
+      setChannelsOptions(channelOpts);
+    }
+  }, [channels]);
+
+  const handleMove = async () => {
+    if (groupSelectedRow.key && commandSelectedRow.key) {
+      if (selectedGroup.id) {
+      } else {
+        setSelectedGroup({
+          id: groupSelectedRow.key,
+          channel_name: groupSelectedRow.channel,
+          name: groupSelectedRow.name,
+          model_id: groupSelectedRow.model_id,
+        });
+      }
+
+      const command = {
+        key: commandSelectedRow.key,
+        tvType: convertTVTypeToType(tvTypeDropdownValue),
+        device: `${currentDevice.id} ${currentDevice.name}`,
+        channel_name: commandSelectedRow.service_name,
+      };
+      setCompletedCommandDataSource([...completedCommandDataSource, command]);
+      const updatedCommandRowDataSource = commandsDataSource.filter(
+        (row) => row.key !== commandSelectedRow.key
+      );
+      setCommandsDataSource(updatedCommandRowDataSource);
+      setCommandSelectedRow({});
+    } else {
+      message.warninging("Please select the rows on both of 2 tables");
+    }
+  };
+
+  const handleDelete = () => {
+    setCompletedCommandDataSource([]);
+    setSelectedGroup({});
+  };
+
+  const handleNewGroupNameChange = (e) => setNewGroupName(e.target.value);
+
+  const handleModalDeviceChange = (value) => setModalDeviceDropdownValue(value);
+
+  const handleModalOk = async () => {
+    try {
+      if (newGroupName && modalDeviceDropdownValue && channleDropdownValue) {
+        setConfirmLoading(true);
+        const newGroup = {
+          name: newGroupName,
+          model_id: modalDeviceDropdownValue,
+          channel_id: channleDropdownValue,
+        };
+        debugger;
+        const response = await addNewGroup(newGroup);
+        if (response.ok) {
+          const { data } = response;
+          const dataSource = {
+            key: data.id,
+            no: groupsDataSource.length + 1,
+            channel: data.channel,
+            name: data.name,
+            model_id: data.model_id,
+          };
+          setGroupsDataSource([...groupsDataSource, dataSource]);
+          setOpen(false);
+          setChannelDropdownValue("");
+          setNewGroupName("");
+          setModalDeviceDropdownValue("");
+          message.success("Added successfully");
+        }
+      } else {
+        message.warninging("Please input all values");
+      }
+    } catch (err) {
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    const updatedCompletedCommandRowDataSource =
+      completedCommandDataSource.filter(
+        (row) => row.key !== completedCommandSelectedRow.key
+      );
+    setCompletedCommandDataSource(updatedCompletedCommandRowDataSource);
+  };
 
   if (loading) {
     return <Spinner />;
@@ -152,7 +357,7 @@ export const Groups = () => {
   return (
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
-        <Col span={8}>
+        <Col span={6}>
           <h1 style={{ marginTop: 0, marginBottom: 10 }}>Groups</h1>
           <Table
             columns={groupsColumn}
@@ -160,7 +365,7 @@ export const Groups = () => {
             pagination={false}
           />
         </Col>
-        <Col span={8}>
+        <Col span={6}>
           <div
             style={{
               width: "100%",
@@ -195,8 +400,125 @@ export const Groups = () => {
             </div>
           </div>
         </Col>
-        <Col span={8}></Col>
+        <Col span={2}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              padding: 10,
+            }}
+          >
+            <Button
+              style={{ display: "block" }}
+              color="primary"
+              variant="solid"
+              onClick={handleMove}
+            >
+              Move
+              <ArrowRightOutlined style={{ marginLeft: 8 }} />
+            </Button>
+          </div>
+        </Col>
+        <Col span={8}>
+          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Group</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {selectedGroup.id && (
+              <h3>{`${selectedGroup.id} / ${selectedGroup.name} / ${selectedGroup.channel_name} / ${selectedGroup.model_id}`}</h3>
+            )}
+          </div>
+          <Table
+            columns={completedCommandColumn}
+            dataSource={completedCommandDataSource}
+            pagination={false}
+          />
+        </Col>
+        <Col span={2}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              padding: 10,
+            }}
+          >
+            <Button
+              style={{ display: "block" }}
+              color="primary"
+              variant="solid"
+              onClick={handleRemove}
+            >
+              Remove
+              <DeleteRowOutlined style={{ marginLeft: 8 }} />
+            </Button>
+          </div>
+        </Col>
       </Row>
+      <div style={{ position: "fixed", bottom: 20, right: 40 }}>
+        <Button
+          style={{ marginRight: 20 }}
+          color="default"
+          variant="solid"
+          onClick={() => setOpen(true)}
+        >
+          Add new <UsergroupAddOutlined style={{ marginLeft: 8 }} />
+        </Button>
+        <Button
+          style={{ marginRight: 20 }}
+          color="danger"
+          variant="solid"
+          onClick={handleDelete}
+        >
+          Delete <DeleteOutlined style={{ marginLeft: 8 }} />
+        </Button>
+        <Button style={{ marginRight: 20 }} color="primary" variant="solid">
+          Save <SaveOutlined style={{ marginLeft: 8 }} />
+        </Button>
+      </div>
+      <CustomModal
+        open={open}
+        handleCancel={() => setOpen(false)}
+        confirmLoading={confirmLoading}
+        title="Add new group"
+        handleOk={handleModalOk}
+      >
+        <InputField
+          name="name"
+          placeholder="Group name"
+          value={newGroupName}
+          onChange={handleNewGroupNameChange}
+        />
+        <div style={{ marginTop: 20 }}>
+          <div style={{ marginBottom: 5 }}>
+            <label style={{ fontSize: "1em" }}>Devices</label>
+          </div>
+          <Dropdown
+            options={deviceOptions}
+            handleChange={handleModalDeviceChange}
+            placeholder="Devices"
+            value={modalDeviceDropdownValue}
+          />
+        </div>
+        <div style={{ marginTop: 20 }}>
+          <div style={{ marginBottom: 5 }}>
+            <label style={{ fontSize: "1em" }}>Channels</label>
+          </div>
+          <Dropdown
+            options={channelsOptions}
+            handleChange={handleChannelDropdown}
+            placeholder="Channels"
+            value={channleDropdownValue}
+          />
+        </div>
+      </CustomModal>
     </div>
   );
 };

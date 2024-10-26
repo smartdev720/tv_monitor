@@ -3,6 +3,7 @@ import devicesReducer from "./slices/devicesSlice";
 import sequence6Reducer from "./slices/sequence6Slice";
 import analogSettingsReducer from "./slices/analogSettingsSlice";
 import groupsReducer from "./slices/groupsSlice";
+import channelsReducer from "./slices/channelsSlice";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     sequence6: sequence6Reducer,
     analogSettings: analogSettingsReducer,
     groups: groupsReducer,
+    channels: channelsReducer,
   },
 });
 

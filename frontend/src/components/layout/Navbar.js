@@ -5,10 +5,11 @@ import { Link, useLocation } from "react-router-dom";
 const { Header } = Layout;
 
 const navMenu = [
-  { label: "Analog setting", path: "/analog-setting" },
-  { label: "DVB-T2 setting", path: "/dvb-t2-setting" },
-  { label: "DVB-C setting", path: "/dvb-c-setting" },
-  { label: "IPTV setting", path: "/iptv-setting" },
+  { label: "Devices", path: "/devices" },
+  { label: "Analog", path: "/analog-setting" },
+  { label: "DVB-T2", path: "/dvb-t2-setting" },
+  { label: "DVB-C", path: "/dvb-c-setting" },
+  { label: "IPTV", path: "/iptv-setting" },
   { label: "Sequence", path: "/sequence" },
   { label: "Groups", path: "/groups" },
   { label: "Group commands", path: "/group-commands" },

@@ -11,7 +11,6 @@ exports.getAnalogSettingsByDeviceId = async (req, res) => {
     const dat8Results = await Promise.all(
       analogSettings.map(async (as) => {
         const pwrResult = await queryAsync(select_dat8, [id, as.frerquency]);
-        console.log(pwrResult, as);
         return {
           ...as,
           pwr: pwrResult.length > 0 ? pwrResult[0].pwr : null,

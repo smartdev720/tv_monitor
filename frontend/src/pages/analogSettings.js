@@ -1,5 +1,15 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Row, Col, Button, Table, Input, Progress, Radio } from "antd";
+import {
+  Row,
+  Col,
+  Button,
+  Table,
+  Input,
+  Progress,
+  Radio,
+  Switch,
+  message,
+} from "antd";
 import {
   CustomModal,
   Dropdown,
@@ -10,8 +20,7 @@ import {
 import { fetchAllDevices, fetchAnalogSettingsByDeviceId } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
-import { EditOutlined, SaveOutlined, SendOutlined } from "@ant-design/icons";
-import { toast } from "react-toastify";
+import { EditOutlined, SendOutlined } from "@ant-design/icons";
 
 export const AnalogSettings = () => {
   const [loading, setLoading] = useState(false);
@@ -68,16 +77,12 @@ export const AnalogSettings = () => {
         const { data } = response;
         const ds = data.map((dt) => ({
           key: dt.id,
-          logo: (
-            <span style={{ marginRight: 10 }}>
-              logos/{dt.program_name ? dt.program_name : "nologo.png"}
-            </span>
-          ),
+          logo: `logos / ${dt.program_name ? dt.program_name : "nologo.png"}`,
           program_name: dt.program_name,
           frequency: dt.frerquency,
           standart: dt.standart,
           active: dt.active,
-          pwr: dt.pwr,
+          pwr: dt.pwr ? dt.pwr : "0",
         }));
         setDataSource(ds);
         setEditInput({});
@@ -139,13 +144,6 @@ export const AnalogSettings = () => {
     {
       title: "PWR",
       dataIndex: "pwr",
-      render: (pwr) => (
-        <Button
-          style={{ width: 20, height: 33, borderRadius: "50%" }}
-          color={pwr ? "primary" : "danger"}
-          variant="solid"
-        />
-      ),
     },
   ];
 
@@ -196,7 +194,7 @@ export const AnalogSettings = () => {
       setOpen(true);
       setEditInput(selectedRow);
     } else {
-      toast.warn("Please select a row on the table");
+      message.warning("Please select a row on the table");
     }
   };
 
@@ -211,7 +209,7 @@ export const AnalogSettings = () => {
         program_name
       );
       if (Object.keys(validationErrors).length > 0) {
-        toast.error("Please input the correct values");
+        message.error("Please input the correct values");
       } else {
         const transferedData = {
           device_id: currentDevice.id,
@@ -232,7 +230,7 @@ export const AnalogSettings = () => {
 
   return (
     <div style={{ padding: 20 }}>
-      <Row gutter={16}>
+      <Row gutter={16} style={{ display: "flex", alignItems: "center" }}>
         <Col span={4}>
           <Dropdown
             options={devicesOptions}
@@ -249,26 +247,17 @@ export const AnalogSettings = () => {
             style={{ color: "black" }}
           />
         </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Place"
-            value={currentDevice.place}
-            disabled
-            style={{ color: "black" }}
+        <Col span={1}>
+          <Switch
+            style={{ padding: 10, marginRight: 20 }}
+            checked={
+              currentDevice.active && currentDevice.active === 1 ? true : false
+            }
           />
         </Col>
-        <Col span={4}>
+        <Col span={1}>
           <Button
-            style={{ padding: 10, marginRight: 20 }}
-            color={
-              currentDevice.active && currentDevice.active === 1
-                ? "primary"
-                : "danger"
-            }
-            variant="solid"
-          />
-          <Button
-            style={{ padding: 10 }}
+            style={{ width: 20, height: 33, borderRadius: "50%" }}
             color={
               currentDevice.online && currentDevice.online === 1
                 ? "primary"
@@ -319,7 +308,7 @@ export const AnalogSettings = () => {
                 icon={<EditOutlined />}
                 iconPosition="end"
                 variant="solid"
-                color="primary"
+                color="default"
                 onClick={handleEdit}
                 style={{ marginRight: 20 }}
               >

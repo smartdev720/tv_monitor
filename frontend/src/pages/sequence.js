@@ -12,13 +12,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { setSequence6 } from "../store/slices/sequence6Slice";
-import { Row, Col, Input, Button, Table } from "antd";
+import { Row, Col, Input, Button, Table, message } from "antd";
 import {
   RightOutlined,
   DeleteRowOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import { toast } from "react-toastify";
 
 export const Sequence = () => {
   const [devicesOptions, setDevicesOptions] = useState([]);
@@ -166,7 +165,7 @@ export const Sequence = () => {
           return;
       }
     } else {
-      toast.info("Please select the available device");
+      message.info("Please select the available device");
     }
   };
 
@@ -194,11 +193,11 @@ export const Sequence = () => {
         }
         setCommandDataSource(dataSource);
       } else {
-        toast.error("Failed to fetch data. Please try again.");
+        message.error("Failed to fetch data. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching sequence 6:", error);
-      toast.error("An error occurred while fetching data.");
+      message.error("An error occurred while fetching data.");
     } finally {
       setLoading(false);
     }
@@ -219,7 +218,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -244,7 +243,7 @@ export const Sequence = () => {
           return;
       }
     } else {
-      toast.info("Please select the available device");
+      message.info("Please select the available device");
     }
   };
 
@@ -266,7 +265,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -293,7 +292,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -323,7 +322,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -340,7 +339,7 @@ export const Sequence = () => {
         getSequence10();
       }
     } else {
-      toast.info("Please select the available device");
+      message.info("Please select the available device");
     }
   };
 
@@ -365,7 +364,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -389,7 +388,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -402,7 +401,7 @@ export const Sequence = () => {
       setCommandNumber(value);
       getSequence7();
     } else {
-      toast.info("Please select the available device");
+      message.info("Please select the available device");
     }
   };
 
@@ -427,7 +426,7 @@ export const Sequence = () => {
         setCommandDataSource(dataSource);
       }
     } catch (err) {
-      toast.error("Server error");
+      message.error("Server error");
     } finally {
       setLoading(false);
     }
@@ -516,7 +515,7 @@ export const Sequence = () => {
       if (!sequenceDataSource.some((sd) => sd.key === transferCommand.key)) {
         setSequenceDataSource([...sequenceDataSource, transferCommand]);
       } else {
-        toast.warn("You have already added");
+        message.warning("You have already added");
       }
     }
   };
@@ -532,10 +531,10 @@ export const Sequence = () => {
         newSequenceDataSource.splice(index, 1);
         setSequenceDataSource(newSequenceDataSource);
       } else {
-        toast.warn("Item not found");
+        message.warning("Item not found");
       }
     } else {
-      toast.warn("Please select an item to remove");
+      message.warning("Please select an item to remove");
     }
   };
 
@@ -561,10 +560,10 @@ export const Sequence = () => {
 
   const handleSTLChange = (value, key) => {
     if (Number(value) > 64 || Number(value) < 0) {
-      toast.warn("Please input the STL between 1 and 64");
+      message.warning("Please input the STL between 1 and 64");
       return;
     } else if (value.length > 2) {
-      toast.warn("Please input correct STL.");
+      message.warning("Please input correct STL.");
       return;
     }
     setSequenceDataSource((prevData) =>

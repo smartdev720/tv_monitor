@@ -12,6 +12,7 @@ exports.getAllGroups = async (req, res) => {
           id: group.id,
           channel: channels.length > 0 ? channels[0].name : null,
           name: group.name,
+          model_id: group.model_id,
         };
       })
     );
@@ -44,7 +45,7 @@ exports.getSelectedCommands = async (req, res) => {
           cable.map(async (ca) => {
             const cpts = await queryAsync(select_settings, [ca.id]);
             return {
-              id: ca.id,
+              id: cpts.length > 0 ? cpts[0].id : null,
               service_name: cpts.length > 0 ? cpts[0].service_name : null,
               channel_id: cpts.length > 0 ? cpts[0].channel_id : null,
               cable_pmts_id: cpts.length > 0 ? cpts[0].id : null,
@@ -74,7 +75,7 @@ exports.getSelectedCommands = async (req, res) => {
           t2Settings.map(async (t2setting) => {
             const pmts = await queryAsync(select_settings, [t2setting.id]);
             return {
-              id: t2setting.id,
+              id: pmts.length > 0 ? pmts[0].id : null,
               t2_pmts_id: pmts.length > 0 ? pmts[0].id : null,
               service_name: pmts.length > 0 ? pmts[0].service_name : null,
               channel_id: pmts.length > 0 ? pmts[0].channel_id : null,
@@ -100,6 +101,41 @@ exports.getSelectedCommands = async (req, res) => {
       default:
         return;
     }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.addNewOne = async (req, res) => {
+  try {
+    const { name, channel_id, model_id } = req.body;
+    const allGroups = await queryAsync("SELECT * FROM groups_table", []);
+    const insert_new_group =
+      "INSERT INTO groups_table (id, name, channel_id, model_id, comand_list) VALUES (?, ?, ?, ?, ?) ;";
+    const nw = await queryAsync(insert_new_group, [
+      allGroups.length + 1,
+      name,
+      channel_id,
+      model_id,
+      "",
+    ]);
+    const select_new_group =
+      "SELECT * FROM groups_table WHERE name = ? AND channel_id = ? AND model_id = ? ORDER BY id DESC LIMIT 1;";
+    const newGroup = await queryAsync(select_new_group, [
+      name,
+      channel_id,
+      model_id,
+    ]);
+    const select_channels = "SELECT name FROM channels WHERE id = ?;";
+    const channel = await queryAsync(select_channels, [channel_id]);
+    const data = {
+      id: newGroup[0].id,
+      channel: channel[0].name,
+      name: newGroup[0].name,
+      model_id: newGroup[0].model_id,
+    };
+    return res.status(200).json({ ok: true, data });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });
