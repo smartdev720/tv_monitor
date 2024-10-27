@@ -19,3 +19,10 @@ export const updateSelectedCableSetting = async (data) => {
   );
   return response.data;
 };
+
+export const deleteCableSetting = async (id) => {
+  const response = await axiosInstance.delete(
+    `/cableSettings/delete-one/${id}`
+  );
+  return response.data;
+};

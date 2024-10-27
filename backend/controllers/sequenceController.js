@@ -107,3 +107,23 @@ exports.getSequence10 = async (req, res) => {
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 };
+
+exports.insertOne = async (req, res) => {
+  try {
+    const { command_list } = req.body;
+    let recommand = "";
+    command_list.forEach((com) => {
+      recommand += " " + com;
+    });
+    const select = "SELECT * FROM sequences ;";
+    const se = await queryAsync(select, []);
+    const sql = "INSERT INTO sequences (command_list, id) VALUES (?, ?) ;";
+    const result = await queryAsync(sql, [recommand, se.length]);
+    if (result) {
+      return res.status(200).json({ ok: true, message: "Saved successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};

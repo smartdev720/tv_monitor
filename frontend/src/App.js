@@ -1,5 +1,5 @@
 import "./App.css";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Navbar } from "./components/layout";
 import {
   Sequence,
@@ -9,14 +9,23 @@ import {
   DVBCSettings,
   IPTVSettings,
   Devices,
+  Schedules,
+  UserLogin,
+  UserRegister,
 } from "./pages";
 import { FloatButton } from "antd";
 
 function App() {
+  const location = useLocation();
+  const isLoginLocation = location.pathname === "/auth/login";
+  const isRegisterLocation = location.pathname === "/auth/register";
+
   return (
     <>
-      <Navbar />
+      {!isLoginLocation && !isRegisterLocation && <Navbar />}
       <Routes>
+        <Route path="/auth/login" element={<UserLogin />} />
+        <Route path="/auth/register" element={<UserRegister />} />
         <Route path="/sequence" element={<Sequence />} />
         <Route path="/analog-setting" element={<AnalogSettings />} />
         <Route path="/groups" element={<Groups />} />
@@ -24,6 +33,7 @@ function App() {
         <Route path="/dvb-c-setting" element={<DVBCSettings />} />
         <Route path="/iptv-setting" element={<IPTVSettings />} />
         <Route path="/devices" element={<Devices />} />
+        <Route path="/schedules" element={<Schedules />} />
       </Routes>
       <FloatButton.BackTop />
     </>

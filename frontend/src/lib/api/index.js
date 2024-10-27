@@ -6,6 +6,7 @@ export {
   fetchSequence3,
   fetchSequence7,
   fetchSequence10,
+  insertSequence,
 } from "./sequence";
 export { fetchAnalogSettingsByDeviceId } from "./analogSettings";
 export {
@@ -13,18 +14,21 @@ export {
   fetchSelectedCommands,
   fetchChannelNameByGroupId,
   addNewGroup,
+  deleteGroup,
 } from "./groups";
 export { fetchAllChannels } from "./channels";
 export {
   fetchT2SettingsByDeviceId,
   fetchT2PmtsBySettingId,
   updateSelectedT2Setting,
+  deleteT2Setting,
 } from "./t2settings";
 export { updateT2PmtsUnderControlById } from "./t2pmts";
 export {
   fetchCablePmtsBySettingId,
   fetchCableSettingsByDeviceId,
   updateSelectedCableSetting,
+  deleteCableSetting,
 } from "./cableSettings";
 export { updateCablePmtsUnderControlById } from "./cablePmts";
 export {
@@ -32,4 +36,11 @@ export {
   updateIPTVSetting,
   deleteIPTVSetting,
 } from "./iptvSettings";
-export { runIPTVSettings } from "./scriptRun";
+export {
+  runIPTVSettings,
+  runAnalogSettings,
+  runT2Settings,
+  runCableSettings,
+} from "./scriptRun";
+export { userLogin, userRegister, fetchUserById } from "./user";
+export { fetchAllSchedules, insertSchedule, updateSchedule } from "./schedule";

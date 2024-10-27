@@ -17,3 +17,8 @@ export const updateSelectedT2Setting = async (data) => {
   );
   return response.data;
 };
+
+export const deleteT2Setting = async (id) => {
+  const response = await axiosInstance.delete(`/t2settings/delete-one/${id}`);
+  return response.data;
+};

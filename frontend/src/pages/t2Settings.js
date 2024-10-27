@@ -10,9 +10,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import {
+  deleteSelectedT2Setting,
+  deleteT2Setting,
   fetchAllDevices,
   fetchT2PmtsBySettingId,
   fetchT2SettingsByDeviceId,
+  runT2Settings,
   updateSelectedT2Setting,
   updateT2PmtsUnderControlById,
 } from "../lib/api";
@@ -138,6 +141,43 @@ export const T2Settings = () => {
               : item
           )
         );
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteSelectedT2Setting = async (id) => {
+    try {
+      setPopLoading(true);
+      const response = await deleteT2Setting(id);
+      if (response.ok) {
+        setPopOpen(false);
+        const index = settingDataSource.findIndex((ds) => ds.key === id);
+        if (index !== -1) {
+          const dtSource = settingDataSource.filter((_, i) => i !== index);
+          setSettingDataSource(dtSource);
+        }
+        setSettingSelectedRow({});
+        setSettingSelectedRowKey("");
+        setPmtDataSource([]);
+        message.success(response.message);
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setPopLoading(false);
+    }
+  };
+
+  const runScript = async (scriptParams) => {
+    try {
+      setLoading(true);
+      const response = await runT2Settings(scriptParams);
+      if (response.ok) {
+        message.success("Run script successfully");
       }
     } catch (err) {
       message.error("Server error");
@@ -306,7 +346,21 @@ export const T2Settings = () => {
     }
   };
 
-  const handleConfirmDeleteClick = async () => {};
+  const handleConfirmDeleteClick = async () => {
+    if (settingSelectedRow.key) {
+      await deleteSelectedT2Setting(settingSelectedRow.key);
+    } else {
+      message.warning("Please select a row");
+    }
+  };
+
+  const handleSave = async () => {
+    if (currentDevice.id) {
+      await runScript({ device_id: currentDevice.id });
+    } else {
+      message.error("Please select the device");
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -387,6 +441,7 @@ export const T2Settings = () => {
         open={popOpen}
         onDeleteConfirmClick={handleConfirmDeleteClick}
         onCancel={() => setPopOpen(false)}
+        onSave={handleSave}
       />
       <CustomModal
         open={open}

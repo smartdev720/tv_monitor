@@ -1,6 +1,18 @@
-import React from "react";
-import { Breadcrumb, Layout, Menu, theme } from "antd";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  Breadcrumb,
+  Button,
+  Dropdown,
+  Layout,
+  Menu,
+  message,
+  theme,
+} from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { DownOutlined, UserOutlined } from "@ant-design/icons";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "../../store/slices/userSlice";
+import { setAuthToken } from "../../lib/axiosInstance";
 
 const { Header } = Layout;
 
@@ -12,19 +24,45 @@ const navMenu = [
   { label: "IPTV", path: "/iptv-setting" },
   { label: "Sequence", path: "/sequence" },
   { label: "Groups", path: "/groups" },
-  { label: "Group commands", path: "/group-commands" },
+  { label: "Schedules", path: "/schedules" },
 ];
 
 export const Navbar = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
+  const [username, setUsername] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.user);
 
   const selectedKey = navMenu
     .findIndex((item) => item.path === location.pathname)
     .toString();
+
+  const handleLogout = () => {
+    localStorage.removeItem("tv_monitor_token");
+    dispatch(setUser(null));
+    navigate("/auth/login");
+    setAuthToken(null);
+    message.warning("You log out");
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" style={{ padding: "5px 20px" }}>
+        <Button type="link" onClick={handleLogout}>
+          Logout
+        </Button>
+      </Menu.Item>
+    </Menu>
+  );
+
+  useEffect(() => {
+    if (user) setUsername(user.name);
+  }, [user]);
 
   return (
     <Layout>
@@ -33,6 +71,7 @@ export const Navbar = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          height: 64,
         }}
       >
         <div className="demo-logo">
@@ -54,6 +93,29 @@ export const Navbar = () => {
             </Menu.Item>
           ))}
         </Menu>
+        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <Dropdown overlay={menu} trigger={["click"]}>
+            <button
+              style={{
+                background: "none",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                paddingLeft: 20,
+                paddingRight: 20,
+              }}
+            >
+              <UserOutlined style={{ marginRight: 15 }} />
+              <span style={{ fontSize: "1.2em", marginRight: 10 }}>
+                {username}
+              </span>
+              <DownOutlined style={{ marginLeft: 3 }} />
+            </button>
+          </Dropdown>
+        </div>
       </Header>
       <Breadcrumb
         style={{

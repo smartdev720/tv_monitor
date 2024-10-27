@@ -8,6 +8,7 @@ export const InputField = ({
   onChange,
   tooltip,
   disabled,
+  type,
 }) => {
   return (
     <div style={{ marginTop: 20 }}>
@@ -19,6 +20,7 @@ export const InputField = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
+        type={type ? type : "text"}
       />
       {tooltip && (
         <div style={{ marginTop: 5 }}>

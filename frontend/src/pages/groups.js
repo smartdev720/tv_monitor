@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import {
   addNewGroup,
+  deleteGroup,
   fetchAllChannels,
   fetchAllDevices,
   fetchAllGroups,
@@ -153,7 +154,7 @@ export const Groups = () => {
 
   const getAllGroups = useCallback(async () => {
     try {
-      setLoading(false);
+      setLoading(true);
       const response = await fetchAllGroups();
       if (response.ok) {
         const { data } = response;
@@ -217,6 +218,29 @@ export const Groups = () => {
           service_name: dt.service_name,
         }));
         setCommandsDataSource(dataSource);
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteSelectedGroup = async (id) => {
+    try {
+      setLoading(true);
+      const response = await deleteGroup(id);
+      if (response.ok) {
+        const index = groupsDataSource.findIndex((ds) => ds.key === id);
+        if (index !== -1) {
+          const dtSource = groupsDataSource.filter((_, i) => i !== index);
+          setGroupsDataSource(dtSource);
+        }
+        setGroupSelectedRow({});
+        setGroupSelectedRowKey("");
+        setCompletedCommandDataSource([]);
+        setSelectedGroup({});
+        message.success(response.message);
       }
     } catch (err) {
       message.error("Server error");
@@ -297,9 +321,12 @@ export const Groups = () => {
     }
   };
 
-  const handleDelete = () => {
-    setCompletedCommandDataSource([]);
-    setSelectedGroup({});
+  const handleDelete = async () => {
+    if (groupSelectedRow.key) {
+      await deleteSelectedGroup(groupSelectedRow.key);
+    } else {
+      message.warning("Please select a row");
+    }
   };
 
   const handleNewGroupNameChange = (e) => setNewGroupName(e.target.value);

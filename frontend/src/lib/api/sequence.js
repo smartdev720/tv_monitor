@@ -29,3 +29,8 @@ export const fetchSequence10 = async (id) => {
   const response = await axiosInstance.get(`/sequence/command10/${id}`);
   return response.data;
 };
+
+export const insertSequence = async (data) => {
+  const response = await axiosInstance.post("/sequence/insert-one", data);
+  return response.data;
+};

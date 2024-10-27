@@ -8,6 +8,7 @@ import {
   fetchSequence7,
   fetchSequence10,
   fetchSequence1,
+  insertSequence,
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
@@ -573,25 +574,40 @@ export const Sequence = () => {
     );
   };
 
+  const addNewOne = async (data) => {
+    try {
+      setLoading(true);
+      const response = await insertSequence({ command_list: data });
+      if (response.ok) {
+        message.success(response.message);
+        setSequenceDataSource([]);
+        setSelectedSequence({});
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveCommands = async () => {
+    let datas = "";
     if (
       commandNumber === "1" ||
       commandNumber === "4" ||
       commandNumber === "5" ||
       commandNumber === "8"
     ) {
-      const datas = sequenceDataSource.map(
-        (sd) => `${commandNumber}, ${sd.key}`
-      );
+      datas = sequenceDataSource.map((sd) => `${commandNumber}, ${sd.key}`);
       console.log(datas);
     } else {
-      const datas = sequenceDataSource.map(
+      datas = sequenceDataSource.map(
         (sd) =>
           `${commandNumber},${sd.key},${
             sd.stl.length === 1 ? `0${sd.stl}` : sd.stl
           }`
       );
-      console.log(datas);
+      await addNewOne(datas);
     }
   };
 

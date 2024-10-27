@@ -17,7 +17,11 @@ import {
   Spinner,
   VideoPlayer,
 } from "../components/common";
-import { fetchAllDevices, fetchAnalogSettingsByDeviceId } from "../lib/api";
+import {
+  fetchAllDevices,
+  fetchAnalogSettingsByDeviceId,
+  runAnalogSettings,
+} from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { EditOutlined, SendOutlined } from "@ant-design/icons";
@@ -99,6 +103,20 @@ export const AnalogSettings = () => {
   const handleRowSelect = (key, record) => {
     setSelectedRowKey(key === selectedRowKey ? null : key);
     setSelectedRow(record);
+  };
+
+  const runScript = async (scriptParams) => {
+    try {
+      setLoading(true);
+      const response = await runAnalogSettings(scriptParams);
+      if (response.ok) {
+        message.success("Run script successfully");
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -224,6 +242,21 @@ export const AnalogSettings = () => {
     }
   };
 
+  const handleSave = async () => {
+    if (currentDevice.id && selectedRow.key) {
+      const data = {
+        device_id: currentDevice.id,
+        frequency: selectedRow.frerquency,
+        standart: selectedRow.standart,
+      };
+      await runScript(data);
+    } else if (!currentDevice.id) {
+      message.error("Please select the deivce");
+    } else {
+      message.error("Please select a row");
+    }
+  };
+
   if (loading) {
     return <Spinner />;
   }
@@ -320,6 +353,7 @@ export const AnalogSettings = () => {
                 variant="solid"
                 color="primary"
                 style={{ marginLeft: 20 }}
+                onClick={handleSave}
               >
                 Save
               </Button>

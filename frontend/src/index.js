@@ -8,6 +8,12 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import "./custom-theme.less";
+import { useAuth } from "./hooks/useAuth";
+
+const AuthProviderWrapper = ({ children }) => {
+  useAuth();
+  return <>{children}</>;
+};
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -20,7 +26,9 @@ root.render(
           },
         }}
       >
-        <App />
+        <AuthProviderWrapper>
+          <App />
+        </AuthProviderWrapper>
       </ConfigProvider>
     </Provider>
   </Router>

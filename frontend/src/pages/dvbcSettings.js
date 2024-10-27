@@ -10,13 +10,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import {
+  deleteCableSetting,
   fetchAllDevices,
   fetchCablePmtsBySettingId,
   fetchCableSettingsByDeviceId,
+  runCableSettings,
   updateCablePmtsUnderControlById,
   updateSelectedCableSetting,
 } from "../lib/api";
-import { DeleteOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
 import {
   getForamtedModulationFromDB,
   getForamtedModulationToDB,
@@ -138,6 +139,43 @@ export const DVBCSettings = () => {
               : item
           )
         );
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteSelectedCableSetting = async (id) => {
+    try {
+      setPopLoading(true);
+      const response = await deleteCableSetting(id);
+      if (response.ok) {
+        setPopOpen(false);
+        const index = settingDataSource.findIndex((ds) => ds.key === id);
+        if (index !== -1) {
+          const dtSource = settingDataSource.filter((_, i) => i !== index);
+          setSettingDataSource(dtSource);
+        }
+        setSettingSelectedRow({});
+        setPmtDataSource([]);
+        setSettingSelectedRowKey("");
+        message.success(response.message);
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setPopLoading(false);
+    }
+  };
+
+  const runScript = async (scriptParams) => {
+    try {
+      setLoading(true);
+      const response = await runCableSettings(scriptParams);
+      if (response.ok) {
+        message.success("Run script successfully");
       }
     } catch (err) {
       message.error("Server error");
@@ -300,7 +338,21 @@ export const DVBCSettings = () => {
     }
   };
 
-  const handleConfirmDeleteClick = async () => {};
+  const handleConfirmDeleteClick = async () => {
+    if (settingSelectedRow.key) {
+      await deleteSelectedCableSetting(settingSelectedRow.key);
+    } else {
+      message.warning("Please select a row");
+    }
+  };
+
+  const handleSave = async () => {
+    if (currentDevice.id) {
+      await runScript({ device_id: currentDevice.id });
+    } else {
+      message.error("Please select the device");
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -381,6 +433,7 @@ export const DVBCSettings = () => {
         open={popOpen}
         onDeleteConfirmClick={handleConfirmDeleteClick}
         onCancel={() => setPopOpen(false)}
+        onSave={handleSave}
       />
       <CustomModal
         open={open}

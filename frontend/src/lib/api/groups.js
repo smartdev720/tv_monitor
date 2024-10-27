@@ -19,3 +19,8 @@ export const addNewGroup = async (newGroup) => {
   const response = await axiosInstance.post("/groups/add-new", newGroup);
   return response.data;
 };
+
+export const deleteGroup = async (id) => {
+  const response = await axiosInstance.delete(`/groups/delete-one/${id}`);
+  return response.data;
+};
