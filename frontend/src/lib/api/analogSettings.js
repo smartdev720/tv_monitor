@@ -6,3 +6,11 @@ export const fetchAnalogSettingsByDeviceId = async (deviceId) => {
   );
   return response.data;
 };
+
+export const updateAnalogSetting = async (data) => {
+  const response = await axiosInstance.patch(
+    "/analog-settings/update-one",
+    data
+  );
+  return response.data;
+};

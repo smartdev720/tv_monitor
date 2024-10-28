@@ -13,7 +13,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { setSequence6 } from "../store/slices/sequence6Slice";
-import { Row, Col, Input, Button, Table, message } from "antd";
+import { Row, Col, Input, Button, Table, message, Radio } from "antd";
 import {
   RightOutlined,
   DeleteRowOutlined,
@@ -26,7 +26,6 @@ export const Sequence = () => {
   const [currentDevice, setCurrentDevice] = useState({});
   const [commandColumns, setCommandColumns] = useState([]);
   const [commandDataSource, setCommandDataSource] = useState([]);
-  const [sequenceColumns, setSequenceColumns] = useState([]);
   const [sequenceDataSource, setSequenceDataSource] = useState([]);
   const [dbt2DropdownValue, setDVT2DropdownValue] = useState("");
   const [dbcDropdownValue, setDVCDropdownValue] = useState("");
@@ -37,7 +36,7 @@ export const Sequence = () => {
   const [transferCommand, setTransferCommand] = useState({});
   const [transferCommandParameter, setTransferCommandParameter] = useState("");
   const [selectedSequence, setSelectedSequence] = useState({});
-  const [sequenceEditableColumns, setSequnceEditableColumns] = useState([]);
+  const [selectedSequenceKey, setSelectedSequenceKey] = useState({});
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
@@ -45,6 +44,12 @@ export const Sequence = () => {
   const handleDeviceChange = (value) => {
     const selectedDevice = devices.find((device) => device.id === value);
     setCurrentDevice(selectedDevice);
+    setCommandDataSource([]);
+    setSequenceDataSource([]);
+    setAnalogDropdownValue("");
+    setDVT2DropdownValue("");
+    setDVCDropdownValue("");
+    setIPTVDropdownValue("");
   };
 
   const getAllDevices = useCallback(async () => {
@@ -108,15 +113,15 @@ export const Sequence = () => {
 
   const sequence4Columns = [
     {
-      title: "T2 Settings Frequency",
-      dataIndex: "t2_settings_frequency",
+      title: "Frequency",
+      dataIndex: "frequency",
     },
   ];
 
   const sequence1Columns = [
     {
-      title: "Cable Settings Frequency",
-      dataIndex: "cable_settings_frequency",
+      title: "Frequency",
+      dataIndex: "frequency",
     },
   ];
 
@@ -127,21 +132,55 @@ export const Sequence = () => {
     },
     {
       title: "Logo",
-      dataIndex: "channel_logo",
+      dataIndex: "logo",
     },
   ];
 
   const sequence7Columns = [
     {
       title: "IPTV Setting Name",
-      dataIndex: "iptv_setting_name",
+      dataIndex: "setting_name",
     },
   ];
 
   const sequence10Columns = [
     {
-      title: "Analog Setting Program Name",
-      dataIndex: "analog_setting_program_name",
+      title: "Service Name",
+      dataIndex: "service_name",
+    },
+  ];
+
+  const handleSequenceRowSelect = async (key, record) => {
+    setSelectedSequenceKey(key === selectedSequenceKey ? null : key);
+    setSelectedSequence(record);
+  };
+
+  const sequenceCommandColumns = [
+    {
+      title: "Select",
+      render: (_, record) => (
+        <Radio onChange={() => handleSequenceRowSelect(record.key, record)} />
+      ),
+    },
+    {
+      title: "Command Number",
+      dataIndex: "command_number",
+    },
+    {
+      title: "Data",
+      dataIndex: "data",
+    },
+    {
+      title: "STL",
+      dataIndex: "stl",
+      render: (_, record) => (
+        <Input
+          name="stl"
+          onChange={handleSTLChange}
+          disabled={record === null}
+          style={{ border: "none", outline: "none" }}
+        />
+      ),
     },
   ];
 
@@ -176,22 +215,16 @@ export const Sequence = () => {
       const response = await fetchSequence6(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence6Columns);
-        setSequenceColumns([
-          ...sequence6Columns,
-          { title: "STL", dataIndex: "stl", editable: true },
-        ]);
+        debugger;
         const { data } = response;
         dispatch(setSequence6(data));
-        const dataSource = [];
-        for (let i = 0; i < data.services.length; i++) {
-          dataSource.push({
-            key: data.services[i].id,
-            service_name: data.services[i].service_name,
-            channel_logo: data.channels[i].logo
-              ? data.channels[i].logo
-              : "No logo",
-          });
-        }
+
+        const dataSource = data.map((dt) => ({
+          key: dt.id,
+          service_name: dt.service_name,
+          channel_logo: dt.logo ? dt.logo : "No logo",
+          frequency: dt.frequency,
+        }));
         setCommandDataSource(dataSource);
       } else {
         message.error("Failed to fetch data. Please try again.");
@@ -210,11 +243,15 @@ export const Sequence = () => {
       const response = await fetchSequence4(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence4Columns);
-        setSequenceColumns(sequence4Columns);
         const { data } = response;
         const dataSource = [];
         data.forEach((dt) => {
-          dataSource.push({ key: dt.id, t2_settings_frequency: dt.frequency });
+          dataSource.push({
+            key: dt.id,
+            frequency: dt.frequency,
+            service_name: dt.service_name,
+            t2_setting_id: dt.t2_setting_id,
+          });
         });
         setCommandDataSource(dataSource);
       }
@@ -228,14 +265,13 @@ export const Sequence = () => {
   const handleDVBCDropdownChange = (value) => {
     if (currentDevice.id) {
       setDVCDropdownValue(value);
-      setSequenceDataSource([]);
       setCommandNumber(value);
       switch (value) {
         case "1":
           getSequence1();
           break;
         case "2":
-          getSequence2();
+          getSequence1();
           break;
         case "3":
           getSequence3();
@@ -254,40 +290,13 @@ export const Sequence = () => {
       const response = await fetchSequence1(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence1Columns);
-        setSequenceColumns(sequence1Columns);
         const { data } = response;
         const dataSource = [];
         data.forEach((dt) => {
           dataSource.push({
             key: dt.id,
-            cable_settings_frequency: dt.frequency,
-          });
-        });
-        setCommandDataSource(dataSource);
-      }
-    } catch (err) {
-      message.error("Server error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getSequence2 = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchSequence1(currentDevice.id);
-      if (response.ok) {
-        setCommandColumns(sequence1Columns);
-        setSequenceColumns([
-          ...sequence1Columns,
-          { title: "STL", dataIndex: "stl", editable: true },
-        ]);
-        const { data } = response;
-        const dataSource = [];
-        data.forEach((dt) => {
-          dataSource.push({
-            key: dt.id,
-            cable_settings_frequency: dt.frequency,
+            frequency: dt.frequency,
+            service_name: dt.service_name,
           });
         });
         setCommandDataSource(dataSource);
@@ -305,21 +314,13 @@ export const Sequence = () => {
       const response = await fetchSequence3(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence3Columns);
-        setSequenceColumns([
-          ...sequence3Columns,
-          { title: "STL", dataIndex: "stl", editable: true },
-        ]);
         const { data } = response;
-        const dataSource = [];
-        for (let i = 0; i < data.services.length; i++) {
-          dataSource.push({
-            key: data.services[i].id,
-            service_name: data.services[i].service_name,
-            channel_logo: data.channels[i].logo
-              ? data.channels[i].logo
-              : "No logo",
-          });
-        }
+        const dataSource = data.map((dt) => ({
+          key: dt.id,
+          service_name: dt.service_name ? dt.service_name : "No service",
+          frequency: dt.frequency,
+          logo: dt.logo ? dt.logo : "No logo",
+        }));
         setCommandDataSource(dataSource);
       }
     } catch (err) {
@@ -332,13 +333,8 @@ export const Sequence = () => {
   const handleAnalogDropdownChange = (value) => {
     if (currentDevice.id) {
       setAnalogDropdownValue(value);
-      setSequenceDataSource([]);
       setCommandNumber(value);
-      if (value === "8") {
-        getSequence8();
-      } else {
-        getSequence10();
-      }
+      getSequence10();
     } else {
       message.info("Please select the available device");
     }
@@ -350,40 +346,13 @@ export const Sequence = () => {
       const response = await fetchSequence10(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence10Columns);
-        setSequenceColumns([
-          ...sequence10Columns,
-          { title: "STL", dataIndex: "stl", editable: true },
-        ]);
         const { data } = response;
         const dataSource = [];
         data.forEach((dt) => {
           dataSource.push({
             key: dt.id,
-            analog_setting_program_name: dt.program_name,
-          });
-        });
-        setCommandDataSource(dataSource);
-      }
-    } catch (err) {
-      message.error("Server error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getSequence8 = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchSequence10(currentDevice.id);
-      if (response.ok) {
-        setCommandColumns(sequence10Columns);
-        setSequenceColumns(sequence10Columns);
-        const { data } = response;
-        const dataSource = [];
-        data.forEach((dt) => {
-          dataSource.push({
-            key: dt.id,
-            analog_setting_program_name: dt.program_name,
+            service_name: dt.program_name,
+            frequency: dt.frequency,
           });
         });
         setCommandDataSource(dataSource);
@@ -412,16 +381,12 @@ export const Sequence = () => {
       const response = await fetchSequence7(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence7Columns);
-        setSequenceColumns([
-          ...sequence7Columns,
-          { title: "STL", dataIndex: "stl", editable: true },
-        ]);
         const { data } = response;
         const dataSource = [];
         data.forEach((dt) => {
           dataSource.push({
             key: dt.id,
-            iptv_setting_name: dt.name,
+            setting_name: dt.name,
           });
         });
         setCommandDataSource(dataSource);
@@ -446,7 +411,7 @@ export const Sequence = () => {
         ) {
           setTransferCommand(selectedRows[0]);
         } else {
-          setTransferCommand({ ...selectedRows[0], stl: "00" });
+          setTransferCommand({ ...selectedRows[0] });
         }
       }
     },
@@ -512,9 +477,22 @@ export const Sequence = () => {
   ];
 
   const handleMove = () => {
-    if (transferCommandParameter && transferCommand.key) {
+    if (transferCommandParameter && transferCommand.key && commandNumber) {
       if (!sequenceDataSource.some((sd) => sd.key === transferCommand.key)) {
-        setSequenceDataSource([...sequenceDataSource, transferCommand]);
+        const transfer = {
+          key: transferCommand.key,
+          command_number: commandNumber,
+          data: `${
+            transferCommand.service_name
+              ? transferCommand.service_name
+              : "No service"
+          } ${
+            transferCommand.frequency
+              ? transferCommand.frequency
+              : "No frequency"
+          }`,
+        };
+        setSequenceDataSource([...sequenceDataSource, transfer]);
       } else {
         message.warning("You have already added");
       }
@@ -538,26 +516,6 @@ export const Sequence = () => {
       message.warning("Please select an item to remove");
     }
   };
-
-  useEffect(() => {
-    if (sequenceColumns.length > 0) {
-      const columns = sequenceColumns.map((col) => {
-        if (!col.editable) {
-          return col;
-        }
-        return {
-          ...col,
-          render: (_, record) => (
-            <Input
-              value={record.stl}
-              onChange={(e) => handleSTLChange(e.target.value, record.key)}
-            />
-          ),
-        };
-      });
-      setSequnceEditableColumns(columns);
-    }
-  }, [sequenceColumns]);
 
   const handleSTLChange = (value, key) => {
     if (Number(value) > 64 || Number(value) < 0) {
@@ -705,7 +663,7 @@ export const Sequence = () => {
               type: "radio",
               ...sequenceRowSelection,
             }}
-            columns={sequenceEditableColumns}
+            columns={sequenceCommandColumns}
             dataSource={sequenceDataSource}
             style={{ marginTop: 20 }}
             pagination={false}

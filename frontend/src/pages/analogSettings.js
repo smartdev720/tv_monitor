@@ -21,6 +21,7 @@ import {
   fetchAllDevices,
   fetchAnalogSettingsByDeviceId,
   runAnalogSettings,
+  updateAnalogSetting,
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
@@ -105,6 +106,36 @@ export const AnalogSettings = () => {
     setSelectedRow(record);
   };
 
+  const updateOne = async (data) => {
+    try {
+      setConfirmLoading(true);
+      const response = await updateAnalogSetting(data);
+      if (response.ok) {
+        debugger;
+        setDataSource((prevData) =>
+          prevData.map((item) =>
+            item.key === data.key
+              ? {
+                  ...item,
+                  active: Number(data.active),
+                  frequency: data.frequency,
+                  program_name: data.program_name,
+                  standart: data.standart,
+                }
+              : item
+          )
+        );
+        setOpen(false);
+        setEditInput(data);
+        setSelectedRow(data);
+        message.success(response.message);
+      }
+    } catch (err) {
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
   const runScript = async (scriptParams) => {
     try {
       setLoading(true);
@@ -185,10 +216,10 @@ export const AnalogSettings = () => {
   const validateInputs = (frequency, standard, active, programName) => {
     const errors = {};
 
-    const frequencyPattern = /^0[0-9]{5}$/;
+    const frequencyPattern = /^(045000|[0-7][0-9]{5}|8[0-4][0-9]{4}|850000)$/;
     if (!frequencyPattern.test(frequency)) {
       errors.frequency =
-        "Frequency must be a 6-digit string starting with 0 (e.g., 045000).";
+        "Frequency must be a 6-digit string from 045000 to 850000.";
     }
 
     const validStandards = ["0", "1", "2", "3", "4"];
@@ -230,11 +261,14 @@ export const AnalogSettings = () => {
         message.error("Please input the correct values");
       } else {
         const transferedData = {
-          device_id: currentDevice.id,
-          analog_settings_id: editInput.key,
+          ...editInput,
+          key: editInput.key,
+          program_name: editInput.program_name,
+          active: activeDropdownValue,
+          standart: standartDropdownValue,
+          frequency: editInput.frequency,
         };
-        setOpen(false);
-        setEditInput({});
+        await updateOne(transferedData);
       }
     } catch (err) {
     } finally {
@@ -373,6 +407,7 @@ export const AnalogSettings = () => {
             name="frequency"
             placeholder="Frequency"
             value={editInput.frequency}
+            tooltip="Frequency must be a 6-digit string from 045000 to 850000."
             onChange={handleEditChange}
           />
           <div style={{ marginTop: 20 }}>

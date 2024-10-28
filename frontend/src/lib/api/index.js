@@ -8,7 +8,10 @@ export {
   fetchSequence10,
   insertSequence,
 } from "./sequence";
-export { fetchAnalogSettingsByDeviceId } from "./analogSettings";
+export {
+  fetchAnalogSettingsByDeviceId,
+  updateAnalogSetting,
+} from "./analogSettings";
 export {
   fetchAllGroups,
   fetchSelectedCommands,

@@ -23,3 +23,25 @@ exports.getAnalogSettingsByDeviceId = async (req, res) => {
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 };
+
+exports.updateOne = async (req, res) => {
+  try {
+    const { key, active, frequency, program_name, standart } = req.body;
+    const update_query =
+      "UPDATE analog_settings SET active = ?, frerquency = ?, program_name = ?, standart = ? WHERE id = ? ;";
+    const result = await queryAsync(update_query, [
+      active,
+      frequency,
+      program_name,
+      standart,
+      key,
+    ]);
+    if (!result) {
+      return res.status(400).json({ ok: false, message: "Server error" });
+    }
+    return res.status(200).json({ ok: true, message: "Saved successfully" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};

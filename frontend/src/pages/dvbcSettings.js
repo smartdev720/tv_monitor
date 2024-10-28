@@ -268,7 +268,7 @@ export const DVBCSettings = () => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
         value: device.id,
-        label: device.name,
+        label: device.id,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -318,7 +318,7 @@ export const DVBCSettings = () => {
     ) {
       return false;
     }
-    const frequencyPattern = /^0[0-9]{5}$/;
+    const frequencyPattern = /^(045000|[0-7][0-9]{5}|8[0-4][0-9]{4}|850000)$/;
     if (!frequencyPattern.test(frequency)) {
       return false;
     }
@@ -450,7 +450,7 @@ export const DVBCSettings = () => {
           placeholder="Frequency"
           value={editInput.frequency}
           onChange={handleModalOnChange}
-          tooltip="Frequency must be a 6-digit string starting with 0 (e.g., 045000)."
+          tooltip="Frequency must be a 6-digit string from 045000 to 850000."
         />
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
