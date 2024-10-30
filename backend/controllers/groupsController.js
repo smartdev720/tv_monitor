@@ -37,67 +37,87 @@ exports.getSelectedCommands = async (req, res) => {
         const analog = await queryAsync(select_settings, [device_id]);
         return res.status(200).json({ ok: true, data: analog });
       case "cable_settings":
+        let totalData = { pmts: [], channels: [] };
         select_settings = `SELECT id FROM ${tvTable} WHERE device_id = ? ;`;
-        const cable = await queryAsync(select_settings, [device_id]);
-        select_settings =
+        const cables = await queryAsync(select_settings, [device_id]);
+        const select_cable_pmts =
           "SELECT id, service_name,	channel_id FROM cable_pmts WHERE cable_setting_id = ? ;";
         const cablePmts = await Promise.all(
-          cable.map(async (ca) => {
-            const cpts = await queryAsync(select_settings, [ca.id]);
-            return {
-              id: cpts.length > 0 ? cpts[0].id : null,
-              service_name: cpts.length > 0 ? cpts[0].service_name : null,
-              channel_id: cpts.length > 0 ? cpts[0].channel_id : null,
-              cable_pmts_id: cpts.length > 0 ? cpts[0].id : null,
-            };
+          cables.map(async (cable) => {
+            const pmts = await queryAsync(select_cable_pmts, [cable.id]);
+            return pmts.map((pmt) => ({
+              ...pmt,
+              cable_setting_id: cable.id,
+            }));
           })
         );
-        select_settings = "SELECT logo FROM channels WHERE id = ? ;";
-        const cableData = await Promise.all(
-          cablePmts.map(async (cp) => {
-            const channels = await queryAsync(select_settings, [cp.channel_id]);
-            return {
-              id: cp.id,
-              service_name: cp.service_name,
-              channel_id: cp.channel_id,
-              cable_pmts_id: cp.cable_pmts_id,
-              logo: channels.length > 0 ? channels[0].logo : null,
-            };
+        totalData.pmts = cablePmts.flat();
+        const select_channels = "SELECT logo FROM channels WHERE id = ? ;";
+        const channelResults = await Promise.all(
+          totalData.pmts.map(async (pmt) => {
+            const channels = await queryAsync(select_channels, [
+              pmt.channel_id,
+            ]);
+            return { pmt, channels };
           })
         );
-        return res.status(200).json({ ok: true, data: cableData });
+        totalData.channels = channelResults.reduce(
+          (acc, result) => acc.concat(result.channels),
+          []
+        );
+        const formattedData = totalData.pmts.map((pmt) => {
+          const channel = totalData.channels.find(
+            (channel) => channel.id === pmt.channel_id
+          );
+          return {
+            id: pmt.id,
+            cable_pmts_id: pmt.id,
+            service_name: pmt.service_name,
+            channel_id: pmt.channel_id,
+            logo: channel ? channel.logo : null,
+          };
+        });
+        return res.status(200).json({ ok: true, data: formattedData });
       case "t2_settings":
+        let total = { pmts: [], channels: [] };
         select_settings = `SELECT id FROM ${tvTable} WHERE device_id = ? ;`;
         const t2Settings = await queryAsync(select_settings, [device_id]);
-        select_settings =
+        const select_t2_pmts =
           "SELECT id, service_name, channel_id FROM t2_pmts WHERE t2_setting_id = ? ;";
         const t2Pmts = await Promise.all(
-          t2Settings.map(async (t2setting) => {
-            const pmts = await queryAsync(select_settings, [t2setting.id]);
-            return {
-              id: pmts.length > 0 ? pmts[0].id : null,
-              t2_pmts_id: pmts.length > 0 ? pmts[0].id : null,
-              service_name: pmts.length > 0 ? pmts[0].service_name : null,
-              channel_id: pmts.length > 0 ? pmts[0].channel_id : null,
-            };
+          t2Settings.map(async (t2Setting) => {
+            const pmts = await queryAsync(select_t2_pmts, [t2Setting.id]);
+            return pmts.map((pmt) => ({
+              ...pmt,
+              t2_setting_id: pmt.id,
+            }));
           })
         );
-        select_settings = "SELECT logo FROM channels WHERE id = ? ;";
-        const t2Data = await Promise.all(
-          t2Pmts.map(async (t2pmt) => {
-            const channels = await queryAsync(select_settings, [
-              t2pmt.channel_id,
-            ]);
-            return {
-              id: t2pmt.id,
-              t2_pmts_id: t2pmt.t2_pmts_id,
-              service_name: t2pmt.service_name,
-              channel_id: t2pmt.channel_id,
-              logo: channels.length > 0 ? channels[0].logo : null,
-            };
+        total.pmts = t2Pmts.flat();
+        const select_channel = "SELECT logo FROM channels WHERE id = ? ;";
+        const chanResults = await Promise.all(
+          total.pmts.map(async (pmt) => {
+            const chans = await queryAsync(select_channel, [pmt.channel_id]);
+            return { pmt, chans };
           })
         );
-        return res.status(200).json({ ok: true, data: t2Data });
+        total.channels = chanResults.reduce(
+          (acc, result) => acc.concat(result.chans),
+          []
+        );
+        const formattedT2Data = total.pmts.map((pmt) => {
+          const channel = total.channels.find(
+            (channel) => channel.id === pmt.channel_id
+          );
+          return {
+            id: pmt.id,
+            t2_pmts_id: pmt.id,
+            service_name: pmt.service_name,
+            channel_id: pmt.channel_id,
+            logo: channel ? channel.logo : null,
+          };
+        });
+        return res.status(200).json({ ok: true, data: formattedT2Data });
       default:
         return;
     }
@@ -110,11 +130,9 @@ exports.getSelectedCommands = async (req, res) => {
 exports.addNewOne = async (req, res) => {
   try {
     const { name, channel_id, model_id } = req.body;
-    const allGroups = await queryAsync("SELECT * FROM groups_table", []);
     const insert_new_group =
-      "INSERT INTO groups_table (id, name, channel_id, model_id, comand_list) VALUES (?, ?, ?, ?, ?) ;";
+      "INSERT INTO groups_table (name, channel_id, model_id, command_list) VALUES (?, ?, ?, ?) ;";
     const nw = await queryAsync(insert_new_group, [
-      allGroups.length + 1,
       name,
       channel_id,
       model_id,
@@ -151,6 +169,23 @@ exports.removeOne = async (req, res) => {
       return res.status(400).json({ ok: false, message: "Server error" });
     }
     return res.status(200).json({ ok: true, message: "Removed successfully" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.updateCommandList = async (req, res) => {
+  try {
+    const { id, command_list } = req.body;
+    console.log(id);
+    const update_command_list =
+      "UPDATE groups_table SET command_list = ? WHERE id = ? ;";
+    const result = await queryAsync(update_command_list, [command_list, id]);
+    if (!result) {
+      return res.status(400).json({ ok: false, message: "Server error" });
+    }
+    return res.status(200).json({ ok: true, message: "Saved successfully" });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });

@@ -24,3 +24,11 @@ export const deleteGroup = async (id) => {
   const response = await axiosInstance.delete(`/groups/delete-one/${id}`);
   return response.data;
 };
+
+export const updateCommandList = async (data) => {
+  const response = await axiosInstance.patch(
+    "/groups/update-commandList",
+    data
+  );
+  return response.data;
+};

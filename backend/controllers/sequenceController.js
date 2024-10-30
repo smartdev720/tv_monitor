@@ -185,15 +185,9 @@ exports.getSequence10 = async (req, res) => {
 
 exports.insertOne = async (req, res) => {
   try {
-    const { command_list } = req.body;
-    let recommand = "";
-    command_list.forEach((com) => {
-      recommand += " " + com;
-    });
-    const select = "SELECT * FROM sequences ;";
-    const se = await queryAsync(select, []);
+    const { command_list, device_id } = req.body;
     const sql = "INSERT INTO sequences (command_list, id) VALUES (?, ?) ;";
-    const result = await queryAsync(sql, [recommand, se.length]);
+    const result = await queryAsync(sql, [command_list, device_id]);
     if (result) {
       return res.status(200).json({ ok: true, message: "Saved successfully" });
     }

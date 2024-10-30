@@ -28,6 +28,21 @@ export const convertTVTypeToType = (value) => {
   }
 };
 
+export const convertTVTypeToValue = (value) => {
+  switch (value) {
+    case "DVB-C":
+      return "3";
+    case "DVB-T2":
+      return "6";
+    case "IPTV":
+      return "7";
+    case "Analog":
+      return "9";
+    default:
+      return;
+  }
+};
+
 export const getForamtedModulationToDB = (input) => {
   const values = {
     16: "1",

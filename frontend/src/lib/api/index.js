@@ -18,6 +18,7 @@ export {
   fetchChannelNameByGroupId,
   addNewGroup,
   deleteGroup,
+  updateCommandList,
 } from "./groups";
 export { fetchAllChannels } from "./channels";
 export {

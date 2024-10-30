@@ -20,11 +20,16 @@ import {
   fetchAllDevices,
   fetchAllGroups,
   fetchSelectedCommands,
+  updateCommandList,
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { setChannels } from "../store/slices/channelsSlice";
-import { convertTVType, convertTVTypeToType } from "../constant/func";
+import {
+  convertTVType,
+  convertTVTypeToType,
+  convertTVTypeToValue,
+} from "../constant/func";
 
 export const Groups = () => {
   const [loading, setLoading] = useState(false);
@@ -59,6 +64,10 @@ export const Groups = () => {
   const handleGroupsRowSelect = (key, record) => {
     setGroupSelectedRowKey(key === groupSelectedRowKey ? null : key);
     setGroupSelectedRow(record);
+    setSelectedGroup({ ...record, id: key, channel_name: record.channel });
+    setCompletedCommandSelectedRow({});
+    setCompletedCommandDataSource([]);
+    setCompletedCommandSelectedRowKey("");
   };
 
   const handleCommandsRowSelect = (key, record) => {
@@ -158,7 +167,8 @@ export const Groups = () => {
       const response = await fetchAllGroups();
       if (response.ok) {
         const { data } = response;
-        // dispatch(setGroups(data));
+        // if()
+        console.log(data);
         const dataSource = data.map((dt, index) => ({
           key: dt.id,
           no: index + 1,
@@ -212,12 +222,14 @@ export const Groups = () => {
       });
       if (response.ok) {
         const { data } = response;
-        const dataSource = data.map((dt) => ({
+        let dataSource = [];
+        dataSource = data.map((dt) => ({
           key: dt.id,
           logo: dt.logo ? dt.logo : "No logo",
           service_name: dt.service_name,
         }));
         setCommandsDataSource(dataSource);
+        setSelectedGroup({});
       }
     } catch (err) {
       message.error("Server error");
@@ -240,6 +252,23 @@ export const Groups = () => {
         setGroupSelectedRowKey("");
         setCompletedCommandDataSource([]);
         setSelectedGroup({});
+        message.success(response.message);
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveCommandList = async (data) => {
+    try {
+      setLoading(true);
+      const response = await updateCommandList(data);
+      if (response.ok) {
+        setCompletedCommandDataSource([]);
+        setCompletedCommandSelectedRow({});
+        setCompletedCommandSelectedRowKey("");
         message.success(response.message);
       }
     } catch (err) {
@@ -276,7 +305,7 @@ export const Groups = () => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
         value: device.id,
-        label: device.name,
+        label: device.id,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -293,31 +322,42 @@ export const Groups = () => {
   }, [channels]);
 
   const handleMove = async () => {
-    if (groupSelectedRow.key && commandSelectedRow.key) {
-      if (selectedGroup.id) {
-      } else {
+    if (groupSelectedRow.key && commandSelectedRow.key && currentDevice.id) {
+      const deviceId = currentDevice.id.toString();
+      const deviceExists = completedCommandDataSource.some((ccds) => {
+        if (ccds.device.split(" ")[0] === deviceId) {
+          return true;
+        }
+        return false;
+      });
+      if (!deviceExists) {
         setSelectedGroup({
           id: groupSelectedRow.key,
           channel_name: groupSelectedRow.channel,
           name: groupSelectedRow.name,
           model_id: groupSelectedRow.model_id,
+          device: deviceId,
         });
-      }
 
-      const command = {
-        key: commandSelectedRow.key,
-        tvType: convertTVTypeToType(tvTypeDropdownValue),
-        device: `${currentDevice.id} ${currentDevice.name}`,
-        channel_name: commandSelectedRow.service_name,
-      };
-      setCompletedCommandDataSource([...completedCommandDataSource, command]);
-      const updatedCommandRowDataSource = commandsDataSource.filter(
-        (row) => row.key !== commandSelectedRow.key
-      );
-      setCommandsDataSource(updatedCommandRowDataSource);
-      setCommandSelectedRow({});
+        const command = {
+          key: commandSelectedRow.key,
+          tvType: convertTVTypeToType(tvTypeDropdownValue),
+          device: `${deviceId} ${currentDevice.name}`,
+          channel_name: commandSelectedRow.service_name,
+        };
+
+        setCompletedCommandDataSource((prev) => [...prev, command]);
+
+        const updatedCommandRowDataSource = commandsDataSource.filter(
+          (row) => row.key !== commandSelectedRow.key
+        );
+        setCommandsDataSource(updatedCommandRowDataSource);
+        setCommandSelectedRow({});
+      } else {
+        message.warning("This command for the selected device already exists.");
+      }
     } else {
-      message.warninging("Please select the rows on both of 2 tables");
+      message.warning("Please select rows in both tables.");
     }
   };
 
@@ -342,7 +382,6 @@ export const Groups = () => {
           model_id: modalDeviceDropdownValue,
           channel_id: channleDropdownValue,
         };
-        debugger;
         const response = await addNewGroup(newGroup);
         if (response.ok) {
           const { data } = response;
@@ -361,9 +400,10 @@ export const Groups = () => {
           message.success("Added successfully");
         }
       } else {
-        message.warninging("Please input all values");
+        message.warning("Please input all values");
       }
     } catch (err) {
+      message.error("Server error");
     } finally {
       setConfirmLoading(false);
     }
@@ -375,6 +415,24 @@ export const Groups = () => {
         (row) => row.key !== completedCommandSelectedRow.key
       );
     setCompletedCommandDataSource(updatedCompletedCommandRowDataSource);
+  };
+
+  const handleSave = async () => {
+    if (completedCommandDataSource.length > 0 && selectedGroup.id) {
+      const data = completedCommandDataSource.map((ccds) => ({
+        id: selectedGroup.id,
+        command_list: `${convertTVTypeToValue(ccds.tvType)},${
+          ccds.device.split(" ")[0]
+        },${ccds.key}`,
+      }));
+      let params = "";
+      data.forEach((dt) => {
+        params += ` ${dt.command_list}`;
+      });
+      await saveCommandList({ id: selectedGroup.id, command_list: params });
+    } else {
+      message.error("Please fill the command list table");
+    }
   };
 
   if (loading) {
@@ -506,7 +564,12 @@ export const Groups = () => {
         >
           Delete <DeleteOutlined style={{ marginLeft: 8 }} />
         </Button>
-        <Button style={{ marginRight: 20 }} color="primary" variant="solid">
+        <Button
+          style={{ marginRight: 20 }}
+          color="primary"
+          variant="solid"
+          onClick={handleSave}
+        >
           Save <SaveOutlined style={{ marginLeft: 8 }} />
         </Button>
       </div>

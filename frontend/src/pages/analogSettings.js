@@ -121,6 +121,7 @@ export const AnalogSettings = () => {
                   frequency: data.frequency,
                   program_name: data.program_name,
                   standart: data.standart,
+                  logo: data.logo,
                 }
               : item
           )
@@ -241,7 +242,7 @@ export const AnalogSettings = () => {
   const handleEdit = () => {
     if (selectedRow.key) {
       setOpen(true);
-      setEditInput(selectedRow);
+      setEditInput({ ...selectedRow, logo: selectedRow.logo.split("/")[1] });
     } else {
       message.warning("Please select a row on the table");
     }
@@ -263,6 +264,7 @@ export const AnalogSettings = () => {
         const transferedData = {
           ...editInput,
           key: editInput.key,
+          logo: `logos / ${editInput.program_name}`,
           program_name: editInput.program_name,
           active: activeDropdownValue,
           standart: standartDropdownValue,

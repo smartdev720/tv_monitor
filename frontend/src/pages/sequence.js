@@ -47,6 +47,8 @@ export const Sequence = () => {
     setCommandDataSource([]);
     setSequenceDataSource([]);
     setAnalogDropdownValue("");
+    setSelectedSequence({});
+    setSelectedSequenceKey("");
     setDVT2DropdownValue("");
     setDVCDropdownValue("");
     setIPTVDropdownValue("");
@@ -150,18 +152,7 @@ export const Sequence = () => {
     },
   ];
 
-  const handleSequenceRowSelect = async (key, record) => {
-    setSelectedSequenceKey(key === selectedSequenceKey ? null : key);
-    setSelectedSequence(record);
-  };
-
   const sequenceCommandColumns = [
-    {
-      title: "Select",
-      render: (_, record) => (
-        <Radio onChange={() => handleSequenceRowSelect(record.key, record)} />
-      ),
-    },
     {
       title: "Command Number",
       dataIndex: "command_number",
@@ -173,11 +164,12 @@ export const Sequence = () => {
     {
       title: "STL",
       dataIndex: "stl",
-      render: (_, record) => (
+      render: (stlValue, record) => (
         <Input
           name="stl"
-          onChange={handleSTLChange}
-          disabled={record === null}
+          value={stlValue}
+          onChange={(e) => handleSTLChange(e.target.value, record.key)}
+          disabled={stlValue === null}
           style={{ border: "none", outline: "none" }}
         />
       ),
@@ -190,7 +182,6 @@ export const Sequence = () => {
     if (currentDevice.id) {
       setDVT2DropdownValue(value);
       setCommandNumber(value);
-      setSequenceDataSource([]);
       switch (value) {
         case "4":
           getSequence4();
@@ -215,7 +206,6 @@ export const Sequence = () => {
       const response = await fetchSequence6(currentDevice.id);
       if (response.ok) {
         setCommandColumns(sequence6Columns);
-        debugger;
         const { data } = response;
         dispatch(setSequence6(data));
 
@@ -367,7 +357,6 @@ export const Sequence = () => {
   const handleIPTVDropdownChange = (value) => {
     if (currentDevice.id) {
       setIPTVDropdownValue(value);
-      setSequenceDataSource([]);
       setCommandNumber(value);
       getSequence7();
     } else {
@@ -409,9 +398,17 @@ export const Sequence = () => {
           commandNumber === "5" ||
           commandNumber === "8"
         ) {
-          setTransferCommand(selectedRows[0]);
+          setTransferCommand({
+            ...selectedRows[0],
+            key: `${commandNumber},${selectedRows[0].key}`,
+            stl: null,
+          });
         } else {
-          setTransferCommand({ ...selectedRows[0] });
+          setTransferCommand({
+            ...selectedRows[0],
+            key: `${commandNumber},${selectedRows[0].key}`,
+            stl: "",
+          });
         }
       }
     },
@@ -478,6 +475,7 @@ export const Sequence = () => {
 
   const handleMove = () => {
     if (transferCommandParameter && transferCommand.key && commandNumber) {
+      debugger;
       if (!sequenceDataSource.some((sd) => sd.key === transferCommand.key)) {
         const transfer = {
           key: transferCommand.key,
@@ -491,8 +489,22 @@ export const Sequence = () => {
               ? transferCommand.frequency
               : "No frequency"
           }`,
+          stl: transferCommand.stl,
         };
-        setSequenceDataSource([...sequenceDataSource, transfer]);
+        let newSequenceDataSource;
+        if (selectedSequence.key) {
+          const selectedIndex = sequenceDataSource.findIndex(
+            (sd) => sd.key === selectedSequence.key
+          );
+          newSequenceDataSource = [
+            ...sequenceDataSource.slice(0, selectedIndex + 1),
+            transfer,
+            ...sequenceDataSource.slice(selectedIndex + 1),
+          ];
+        } else {
+          newSequenceDataSource = [...sequenceDataSource, transfer];
+        }
+        setSequenceDataSource(newSequenceDataSource);
       } else {
         message.warning("You have already added");
       }
@@ -518,10 +530,12 @@ export const Sequence = () => {
   };
 
   const handleSTLChange = (value, key) => {
-    if (Number(value) > 64 || Number(value) < 0) {
+    const numericValue = Number(value);
+    if (isNaN(numericValue) || numericValue > 64 || numericValue < 1) {
       message.warning("Please input the STL between 1 and 64");
       return;
-    } else if (value.length > 2) {
+    }
+    if (value.length > 2) {
       message.warning("Please input correct STL.");
       return;
     }
@@ -535,11 +549,17 @@ export const Sequence = () => {
   const addNewOne = async (data) => {
     try {
       setLoading(true);
-      const response = await insertSequence({ command_list: data });
+      const response = await insertSequence({
+        command_list: data,
+        device_id: currentDevice.id,
+      });
       if (response.ok) {
         message.success(response.message);
         setSequenceDataSource([]);
         setSelectedSequence({});
+        setSelectedSequenceKey("");
+        setTransferCommand({});
+        setTransferCommandParameter("");
       }
     } catch (err) {
       message.error("Server error");
@@ -549,23 +569,27 @@ export const Sequence = () => {
   };
 
   const handleSaveCommands = async () => {
-    let datas = "";
-    if (
-      commandNumber === "1" ||
-      commandNumber === "4" ||
-      commandNumber === "5" ||
-      commandNumber === "8"
-    ) {
-      datas = sequenceDataSource.map((sd) => `${commandNumber}, ${sd.key}`);
-      console.log(datas);
+    if (sequenceDataSource.length > 0) {
+      const params = sequenceDataSource.map((sequence) => {
+        let param = sequence.key;
+        if (sequence.stl || sequence.stl === "") {
+          if (sequence.stl.length === 1) {
+            param += `,0${sequence.stl}`;
+          } else if (sequence.stl === "") {
+            param += ",00";
+          } else {
+            param += `,${sequence.stl}`;
+          }
+        }
+        return param;
+      });
+      let data = "";
+      params.forEach((param) => {
+        data += ` ${param}`;
+      });
+      await addNewOne(data);
     } else {
-      datas = sequenceDataSource.map(
-        (sd) =>
-          `${commandNumber},${sd.key},${
-            sd.stl.length === 1 ? `0${sd.stl}` : sd.stl
-          }`
-      );
-      await addNewOne(datas);
+      message.warning("There is no added row in Sequence Table");
     }
   };
 
@@ -640,17 +664,10 @@ export const Sequence = () => {
             pagination={false}
           />
         </Col>
-        <Col
-          span={2}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <Col span={2}>
           <Button
             type="primary"
-            style={{ display: "flex", alignItems: "center" }}
+            style={{ position: "fixed", marginTop: 200 }}
             onClick={handleMove}
           >
             Move <RightOutlined style={{ marginLeft: 8, color: "white" }} />
@@ -669,17 +686,10 @@ export const Sequence = () => {
             pagination={false}
           />
         </Col>
-        <Col
-          span={2}
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <Col span={2}>
           <Button
             type="primary"
-            style={{ display: "flex", alignItems: "center" }}
+            style={{ position: "fixed", marginTop: 200 }}
             onClick={handleRemove}
           >
             Remove{" "}
