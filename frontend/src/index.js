@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import store from "./store/store";
 import "./custom-theme.less";
 import { useAuth } from "./hooks/useAuth";
+import "./i18n";
 
 const AuthProviderWrapper = ({ children }) => {
   useAuth();

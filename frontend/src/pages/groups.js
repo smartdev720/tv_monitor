@@ -30,6 +30,7 @@ import {
   convertTVTypeToType,
   convertTVTypeToValue,
 } from "../constant/func";
+import { useTranslation } from "react-i18next";
 
 export const Groups = () => {
   const [loading, setLoading] = useState(false);
@@ -60,6 +61,7 @@ export const Groups = () => {
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
   const { channels } = useSelector((state) => state.channels);
+  const { t } = useTranslation();
 
   const handleGroupsRowSelect = (key, record) => {
     setGroupSelectedRowKey(key === groupSelectedRowKey ? null : key);
@@ -84,7 +86,8 @@ export const Groups = () => {
 
   const groupsColumn = [
     {
-      title: "Select",
+      title: "",
+      width: 50,
       render: (_, record) => (
         <Radio
           checked={groupSelectedRowKey === record.key}
@@ -97,22 +100,18 @@ export const Groups = () => {
       dataIndex: "no",
     },
     {
-      title: "Group name",
+      title: `${t("groupName")}`,
       dataIndex: "name",
     },
     {
-      title: "Channel",
+      title: `${t("channel")}`,
       dataIndex: "channel",
-    },
-    {
-      title: "",
-      dataIndex: "model_id",
     },
   ];
 
   const commandsColumn = [
     {
-      title: "Select",
+      title: "",
       render: (_, record) => (
         <Radio
           checked={commandSelectedRowKey === record.key}
@@ -121,18 +120,39 @@ export const Groups = () => {
       ),
     },
     {
-      title: "Logo",
-      dataIndex: "logo",
+      title: `${t("logo")}`,
+      render: (_, record) => {
+        const logoSrc = `./logos/${record.logo}.png`;
+
+        return (
+          <>
+            <img
+              src={logoSrc}
+              alt={record.logo}
+              style={{ width: 50, height: "auto" }}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextElementSibling.style.display = "inline";
+              }}
+            />
+            <img
+              src="./logos/PROVENCE.png"
+              alt="nologo"
+              style={{ display: "none", width: 50, height: "auto" }}
+            />
+          </>
+        );
+      },
     },
     {
-      title: "Service name",
+      title: `${t("serviceName")}`,
       dataIndex: "service_name",
     },
   ];
 
   const completedCommandColumn = [
     {
-      title: "Select",
+      title: "",
       render: (_, record) => (
         <Radio
           checked={completedCommandSelectedRowKey === record.key}
@@ -141,15 +161,15 @@ export const Groups = () => {
       ),
     },
     {
-      title: "TV type",
+      title: `${t("tvType")}`,
       dataIndex: "tvType",
     },
     {
-      title: "Device",
+      title: `${t("device")}`,
       dataIndex: "device",
     },
     {
-      title: "Channel",
+      title: `${t("channel")}`,
       dataIndex: "channel_name",
     },
   ];
@@ -167,11 +187,10 @@ export const Groups = () => {
       const response = await fetchAllGroups();
       if (response.ok) {
         const { data } = response;
-        // if()
         console.log(data);
         const dataSource = data.map((dt, index) => ({
           key: dt.id,
-          no: index + 1,
+          no: dt.id,
           channel: dt.channel,
           name: dt.name,
           model_id: dt.model_id,
@@ -225,11 +244,12 @@ export const Groups = () => {
         let dataSource = [];
         dataSource = data.map((dt) => ({
           key: dt.id,
-          logo: dt.logo ? dt.logo : "No logo",
+          logo: dt.service_name,
           service_name: dt.service_name,
         }));
         setCommandsDataSource(dataSource);
-        setSelectedGroup({});
+        setCommandSelectedRow({});
+        setCommandSelectedRowKey("");
       }
     } catch (err) {
       message.error("Server error");
@@ -279,7 +299,10 @@ export const Groups = () => {
   };
 
   const handleDeviceChange = async (value) => {
-    const selectedDevice = devices.find((device) => device.id === value);
+    const selectedId = value.split(" ")[0];
+    const selectedDevice = devices.find(
+      (device) => device.id === Number(selectedId)
+    );
     setCurrentDevice(selectedDevice);
     if (tvTypeDropdownValue) {
       await getSelectedCommands(convertTVType(tvTypeDropdownValue), value);
@@ -304,8 +327,8 @@ export const Groups = () => {
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
-        value: device.id,
-        label: device.id,
+        value: `${device.id} ${device.place}`,
+        label: `${device.id} ${device.place}`,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -342,7 +365,7 @@ export const Groups = () => {
         const command = {
           key: commandSelectedRow.key,
           tvType: convertTVTypeToType(tvTypeDropdownValue),
-          device: `${deviceId} ${currentDevice.name}`,
+          device: `${deviceId} ${currentDevice.place}`,
           channel_name: commandSelectedRow.service_name,
         };
 
@@ -354,10 +377,10 @@ export const Groups = () => {
         setCommandsDataSource(updatedCommandRowDataSource);
         setCommandSelectedRow({});
       } else {
-        message.warning("This command for the selected device already exists.");
+        message.warning(t("groupCommandSelectedDeviceValidation"));
       }
     } else {
-      message.warning("Please select rows in both tables.");
+      message.warning(t("groupCommandSelectRowValidation"));
     }
   };
 
@@ -365,7 +388,7 @@ export const Groups = () => {
     if (groupSelectedRow.key) {
       await deleteSelectedGroup(groupSelectedRow.key);
     } else {
-      message.warning("Please select a row");
+      message.warning(t("selectRowValidation"));
     }
   };
 
@@ -397,10 +420,10 @@ export const Groups = () => {
           setChannelDropdownValue("");
           setNewGroupName("");
           setModalDeviceDropdownValue("");
-          message.success("Added successfully");
+          message.success(t("addedSuccessfully"));
         }
       } else {
-        message.warning("Please input all values");
+        message.warning(t("inputValidation"));
       }
     } catch (err) {
       message.error("Server error");
@@ -431,7 +454,7 @@ export const Groups = () => {
       });
       await saveCommandList({ id: selectedGroup.id, command_list: params });
     } else {
-      message.error("Please fill the command list table");
+      message.error(t("groupCommandSaveValidation"));
     }
   };
 
@@ -443,11 +466,15 @@ export const Groups = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={6}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Groups</h1>
+          <h1 style={{ marginTop: 0, marginBottom: 10 }}>{t("group")}</h1>
           <Table
             columns={groupsColumn}
             dataSource={groupsDataSource}
             pagination={false}
+            scroll={{
+              x: 300,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={6}>
@@ -463,24 +490,32 @@ export const Groups = () => {
               <Dropdown
                 options={deviceOptions}
                 handleChange={handleDeviceChange}
-                placeholder="Devices"
-                value={currentDevice.id}
+                placeholder={t("devices")}
+                value={
+                  currentDevice.id
+                    ? `${currentDevice.id} ${currentDevice.place}`
+                    : t("selectDevice")
+                }
               />
             </div>
             <div>
               <Dropdown
                 options={tvTypeDropdownOptions}
                 handleChange={handleTvTypeChange}
-                placeholder="TV Type"
-                value={tvTypeDropdownValue}
+                placeholder={t("tvType")}
+                value={tvTypeDropdownValue ? tvTypeDropdownValue : t("tvType")}
               />
             </div>
             <div>
-              <h1>Commands</h1>
+              <h1>{t("commands")}</h1>
               <Table
                 columns={commandsColumn}
                 dataSource={commandsDataSource}
                 pagination={false}
+                scroll={{
+                  x: 0,
+                  y: 500,
+                }}
               />
             </div>
           </div>
@@ -501,13 +536,13 @@ export const Groups = () => {
               variant="solid"
               onClick={handleMove}
             >
-              Move
+              {t("move")}
               <ArrowRightOutlined style={{ marginLeft: 8 }} />
             </Button>
           </div>
         </Col>
         <Col span={8}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Group</h1>
+          <h1 style={{ marginTop: 0, marginBottom: 10 }}>{t("group")}</h1>
           <div
             style={{
               display: "flex",
@@ -523,6 +558,10 @@ export const Groups = () => {
             columns={completedCommandColumn}
             dataSource={completedCommandDataSource}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={2}>
@@ -541,7 +580,7 @@ export const Groups = () => {
               variant="solid"
               onClick={handleRemove}
             >
-              Remove
+              {t("remove")}
               <DeleteRowOutlined style={{ marginLeft: 8 }} />
             </Button>
           </div>
@@ -554,7 +593,7 @@ export const Groups = () => {
           variant="solid"
           onClick={() => setOpen(true)}
         >
-          Add new <UsergroupAddOutlined style={{ marginLeft: 8 }} />
+          {t("addNew")} <UsergroupAddOutlined style={{ marginLeft: 8 }} />
         </Button>
         <Button
           style={{ marginRight: 20 }}
@@ -562,7 +601,7 @@ export const Groups = () => {
           variant="solid"
           onClick={handleDelete}
         >
-          Delete <DeleteOutlined style={{ marginLeft: 8 }} />
+          {t("delete")} <DeleteOutlined style={{ marginLeft: 8 }} />
         </Button>
         <Button
           style={{ marginRight: 20 }}
@@ -570,41 +609,42 @@ export const Groups = () => {
           variant="solid"
           onClick={handleSave}
         >
-          Save <SaveOutlined style={{ marginLeft: 8 }} />
+          {t("save")} <SaveOutlined style={{ marginLeft: 8 }} />
         </Button>
       </div>
       <CustomModal
         open={open}
         handleCancel={() => setOpen(false)}
         confirmLoading={confirmLoading}
-        title="Add new group"
+        title={t("addNewGroup")}
         handleOk={handleModalOk}
       >
         <InputField
           name="name"
-          placeholder="Group name"
+          placeholder={t("groupName")}
           value={newGroupName}
           onChange={handleNewGroupNameChange}
+          isInvalid={newGroupName === "" ? true : false}
         />
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
-            <label style={{ fontSize: "1em" }}>Devices</label>
+            <label style={{ fontSize: "1em" }}>{t("devices")}</label>
           </div>
           <Dropdown
             options={deviceOptions}
             handleChange={handleModalDeviceChange}
-            placeholder="Devices"
+            placeholder={t("devices")}
             value={modalDeviceDropdownValue}
           />
         </div>
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
-            <label style={{ fontSize: "1em" }}>Channels</label>
+            <label style={{ fontSize: "1em" }}>{t("channel")}</label>
           </div>
           <Dropdown
             options={channelsOptions}
             handleChange={handleChannelDropdown}
-            placeholder="Channels"
+            placeholder={t("channel")}
             value={channleDropdownValue}
           />
         </div>

@@ -34,3 +34,8 @@ export const insertSequence = async (data) => {
   const response = await axiosInstance.post("/sequence/insert-one", data);
   return response.data;
 };
+
+export const updateSequence = async (data) => {
+  const response = await axiosInstance.patch("/sequence/update-one", data);
+  return response.data;
+};

@@ -7,6 +7,7 @@ export {
   fetchSequence7,
   fetchSequence10,
   insertSequence,
+  updateSequence,
 } from "./sequence";
 export {
   fetchAnalogSettingsByDeviceId,
@@ -46,5 +47,5 @@ export {
   runT2Settings,
   runCableSettings,
 } from "./scriptRun";
-export { userLogin, userRegister, fetchUserById } from "./user";
+export { login, register, fetchUserById } from "./user";
 export { fetchAllSchedules, insertSchedule, updateSchedule } from "./schedule";

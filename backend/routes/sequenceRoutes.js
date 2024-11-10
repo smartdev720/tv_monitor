@@ -8,6 +8,7 @@ const {
   getSequence7,
   getSequence10,
   insertOne,
+  updateOne,
 } = require("../controllers/sequenceController");
 
 router.get("/command6/:id", getSequence6);
@@ -17,4 +18,5 @@ router.get("/command3/:id", getSequence3);
 router.get("/command7/:id", getSequence7);
 router.get("/command10/:id", getSequence10);
 router.post("/insert-one", insertOne);
+router.patch("/update-one", updateOne);
 module.exports = router;

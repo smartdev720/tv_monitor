@@ -1,58 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { Button, message } from "antd";
+import { Button, message, Row, Col } from "antd";
 import { InputField } from "../components/common";
 import { LoginOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { fetchUserById, userLogin } from "../lib/api";
-import { useDispatch, useSelector } from "react-redux";
-import { setUser, setUserId } from "../store/slices/userSlice";
+import { login } from "../lib/api";
 import { setAuthToken } from "../lib/axiosInstance";
-import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export const UserLogin = () => {
   const [input, setInput] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
-
-  const login = async (user) => {
-    try {
-      setLoading(true);
-      const response = await userLogin(user);
-      if (response.ok) {
-        const { token } = response;
-        localStorage.setItem("tv_monitor_token", token);
-        setAuthToken(token);
-        message.success("Welcome back");
-        navigate("/analog-setting");
-      } else {
-        message.error(response.message);
-      }
-    } catch (err) {
-      message.error("Server error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) =>
     setInput({ ...input, [e.target.name]: e.target.value });
 
   const isValidInput = () => {
-    const { name, password, email } = input;
-    if (
-      !name ||
-      name === "" ||
-      !password ||
-      password === "" ||
-      !email ||
-      email == ""
-    ) {
+    const { password, email } = input;
+    if (!password || password === "" || !email || email === "") {
       return false;
     }
     if (email && (!email.includes("@") || !email.includes("."))) {
@@ -63,7 +33,23 @@ export const UserLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    await login(input);
+    try {
+      setLoading(true);
+      const response = await login(input);
+      if (response.ok) {
+        const { token } = response;
+        localStorage.setItem("tv_monitor_token", token);
+        setAuthToken(token);
+        message.success(t("welcomeBack"));
+        navigate("/analog-setting");
+      } else {
+        message.error(response.message);
+      }
+    } catch (err) {
+      message.error("Server error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -80,57 +66,58 @@ export const UserLogin = () => {
         height: "70vh",
       }}
     >
-      <div
-        style={{
-          width: "30%",
-          padding: 50,
-          boxShadow: "0px 4px 5px 2px",
-          borderRadius: 20,
-        }}
-      >
-        <InputField
-          type="text"
-          name="name"
-          placeholder="User Name"
-          value={input.name}
-          onChange={handleChange}
-        />
-        <InputField
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={input.email}
-          onChange={handleChange}
-        />
-        <InputField
-          type="password"
-          placeholder="Password"
-          name="password"
-          value={input.password}
-          onChange={handleChange}
-        />
-        <div style={{ marginTop: 20 }}>
-          <p>
-            Have you already registered or not ? Register
-            <Button color="primary" variant="link">
-              <Link to="/auth/register"> here</Link>
+      <Row justify="center" style={{ width: "100%" }}>
+        <Col
+          xs={22}
+          sm={18}
+          md={12}
+          lg={8}
+          xl={6}
+          style={{
+            padding: 30,
+            boxShadow: "0px 4px 5px 2px",
+            borderRadius: 20,
+            backgroundColor: "white",
+          }}
+        >
+          <InputField
+            type="email"
+            name="email"
+            placeholder={t("email")}
+            value={input.email}
+            onChange={handleChange}
+            isInvalid={input.email === ""}
+          />
+          <InputField
+            type="password"
+            placeholder={t("password")}
+            name="password"
+            value={input.password}
+            onChange={handleChange}
+            isInvalid={input.password === ""}
+          />
+          <div style={{ marginTop: 20 }}>
+            <div>
+              <span>{t("alreadyLoggined")}</span>
+              <Button type="link" style={{ padding: 0, marginLeft: 10 }}>
+                <Link to="/auth/register">{t("here")}</Link>
+              </Button>
+            </div>
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              onClick={handleLogin}
+              loading={loading}
+              disabled={disabled}
+              style={{ display: "inline-block", width: "100%" }}
+            >
+              {t("login")} <LoginOutlined style={{ marginLeft: 8 }} />
             </Button>
-          </p>
-        </div>
-        <div style={{ marginTop: 20 }}>
-          <Button
-            color="primary"
-            variant="solid"
-            type="submit"
-            onClick={handleLogin}
-            loading={loading}
-            disabled={disabled}
-            style={{ display: "inline-block", width: "100%" }}
-          >
-            Log in <LoginOutlined style={{ marginLeft: 8 }} />
-          </Button>
-        </div>
-      </div>
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 };

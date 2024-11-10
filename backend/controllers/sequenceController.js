@@ -18,6 +18,7 @@ exports.getSequence6 = async (req, res) => {
         return pmts.map((pmt) => ({
           ...pmt,
           frequency: setting.frequency,
+          name: setting.name,
         }));
       })
     );
@@ -43,6 +44,7 @@ exports.getSequence6 = async (req, res) => {
         id: pmt.id,
         service_name: pmt.service_name,
         frequency: pmt.frequency,
+        name: pmt.name,
         logo: channel ? channel.logo : null,
       };
     });
@@ -68,6 +70,7 @@ exports.getSequence4 = async (req, res) => {
           t2_setting_id: t2.id,
           service_name: pmt.length > 0 ? pmt[0].service_name : null,
           frequency: t2.frequency,
+          name: t2.name,
         };
       })
     );
@@ -82,7 +85,7 @@ exports.getSequence1 = async (req, res) => {
   try {
     const { id } = req.params;
     const select_cableSettings =
-      "SELECT id, frequency FROM cable_settings WHERE device_id = ?";
+      "SELECT * FROM cable_settings WHERE device_id = ?";
     const sql_cablepmt =
       "SELECT id, service_name FROM cable_pmts WHERE cable_setting_id = ? ;";
 
@@ -94,6 +97,7 @@ exports.getSequence1 = async (req, res) => {
           id: pmts.length > 0 ? pmts[0].id : null,
           frequency: cableSetting.frequency,
           service_name: pmts.length > 0 ? pmts[0].service_name : null,
+          name: cableSetting.name,
         };
       })
     );
@@ -122,6 +126,7 @@ exports.getSequence3 = async (req, res) => {
         return pmts.map((pmt) => ({
           ...pmt,
           frequency: setting.frequency,
+          name: setting.name,
         }));
       })
     );
@@ -190,6 +195,20 @@ exports.insertOne = async (req, res) => {
     const result = await queryAsync(sql, [command_list, device_id]);
     if (result) {
       return res.status(200).json({ ok: true, message: "Saved successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.updateOne = async (req, res) => {
+  try {
+    const { command_list, device_id } = req.body;
+    const sql = "UPDATE sequences SET command_list = ? WHERE id = ? ;";
+    const result = await queryAsync(sql, [command_list, device_id]);
+    if (result) {
+      return res.status(200).json({ ok: true, message: "Edited successfully" });
     }
   } catch (err) {
     console.log(err);

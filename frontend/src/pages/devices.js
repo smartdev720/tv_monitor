@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { fetchAllDevices, updateDevice } from "../lib/api";
 import { SendOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 
 export const Devices = () => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ export const Devices = () => {
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { t } = useTranslation();
 
   // Call APIs To Backend
   const getAllDevices = useCallback(async () => {
@@ -82,7 +84,7 @@ export const Devices = () => {
     if (isValidEdit()) {
       await updateSelectedDevice(editInput);
     } else {
-      message.warning("Please input all values");
+      message.warning(t("inputValidation"));
     }
   };
 
@@ -92,15 +94,11 @@ export const Devices = () => {
       dataIndex: "id",
     },
     {
-      title: "Name",
-      dataIndex: "name",
-    },
-    {
-      title: "Place",
+      title: `${t("place")}`,
       dataIndex: "place",
     },
     {
-      title: "Active",
+      title: `${t("active")}`,
       dataIndex: "active",
     },
   ];
@@ -143,39 +141,40 @@ export const Devices = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={12}>
-          <h1>List Of Devices</h1>
-          <Table columns={columns} dataSource={dataSource} pagination={false} />
+          <h1>{t("devices")}</h1>
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
+          />
         </Col>
         <Col span={1}></Col>
         <Col span={11} style={{ marginTop: 30 }}>
           <div style={{ marginTop: 20 }}>
-            <div style={{ marginBottom: 5 }}>
-              <label style={{ fontSize: "1em" }}>Select Device</label>
-            </div>
             <Dropdown
               options={devicesOptions}
               handleChange={handleDeviceChange}
               value={currentDevice.id}
+              placeholder={t("selectDevice")}
             />
           </div>
-
-          <InputField
-            name="name"
-            placeholder="Name"
-            value={editInput.name}
-            onChange={handleEditChange}
-            disabled={disabled}
-          />
           <InputField
             name="place"
             placeholder="Place"
             value={editInput.place}
             onChange={handleEditChange}
             disabled={disabled}
+            isInvalid={
+              !editInput.place || editInput.place === "" ? true : false
+            }
           />
           <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 5 }}>
-              <label style={{ fontSize: "1em" }}>Active</label>
+              <label style={{ fontSize: "1em" }}>{t("active")}</label>
             </div>
             <div
               style={{
@@ -190,7 +189,7 @@ export const Devices = () => {
                 onChange={handleEditActiveChange}
               />
               <Button color="primary" variant="solid" onClick={handleSave}>
-                Save <SendOutlined style={{ marginLeft: 8 }} />
+                {t("save")} <SendOutlined style={{ marginLeft: 8 }} />
               </Button>
             </div>
           </div>

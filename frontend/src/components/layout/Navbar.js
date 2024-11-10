@@ -13,21 +13,24 @@ import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "../../store/slices/userSlice";
 import { setAuthToken } from "../../lib/axiosInstance";
+import { LanguageSwitcher } from "../common";
+import { useTranslation } from "react-i18next";
 
 const { Header } = Layout;
 
-const navMenu = [
-  { label: "Devices", path: "/devices" },
-  { label: "Analog", path: "/analog-setting" },
-  { label: "DVB-T2", path: "/dvb-t2-setting" },
-  { label: "DVB-C", path: "/dvb-c-setting" },
-  { label: "IPTV", path: "/iptv-setting" },
-  { label: "Sequence", path: "/sequence" },
-  { label: "Groups", path: "/groups" },
-  { label: "Schedules", path: "/schedules" },
-];
-
 export const Navbar = () => {
+  const { t } = useTranslation();
+
+  const navMenu = [
+    { label: `${t("devices")}`, path: "/devices" },
+    { label: `${t("analog")}`, path: "/analog-setting" },
+    { label: "DVB-T2", path: "/dvb-t2-setting" },
+    { label: "DVB-C", path: "/dvb-c-setting" },
+    { label: "IPTV", path: "/iptv-setting" },
+    { label: `${t("sequence")}`, path: "/sequence" },
+    { label: `${t("groups")}`, path: "/groups" },
+    { label: `${t("schedules")}`, path: "/schedules" },
+  ];
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -54,14 +57,14 @@ export const Navbar = () => {
     <Menu>
       <Menu.Item key="1" style={{ padding: "5px 20px" }}>
         <Button type="link" onClick={handleLogout}>
-          Logout
+          {t("logout")}
         </Button>
       </Menu.Item>
     </Menu>
   );
 
   useEffect(() => {
-    if (user) setUsername(user.name);
+    if (user) setUsername(`${user.nickName ? user.nickName : "NONE"}`);
   }, [user]);
 
   return (
@@ -74,26 +77,44 @@ export const Navbar = () => {
           height: 64,
         }}
       >
-        <div className="demo-logo">
-          <h1 style={{ color: "white" }}>TV MONITOR</h1>
-        </div>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={[selectedKey]}
+        <div
           style={{
-            flex: 1,
-            minWidth: 0,
-            marginLeft: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "70%",
           }}
         >
-          {navMenu.map((item, index) => (
-            <Menu.Item key={index}>
-              <Link to={item.path}>{item.label}</Link>
-            </Menu.Item>
-          ))}
-        </Menu>
-        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <div className="demo-logo">
+            <h1 style={{ color: "white" }}>{t("tvMonitor")}</h1>
+          </div>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            selectedKeys={[selectedKey]}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              marginLeft: 20,
+            }}
+          >
+            {navMenu.map((item, index) => (
+              <Menu.Item key={index}>
+                <Link to={item.path}>{item.label}</Link>
+              </Menu.Item>
+            ))}
+          </Menu>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            height: "100%",
+            justifyContent: "space-between",
+          }}
+        >
+          <LanguageSwitcher />
           <Dropdown overlay={menu} trigger={["click"]}>
             <button
               style={{

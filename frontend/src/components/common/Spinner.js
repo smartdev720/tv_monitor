@@ -1,6 +1,8 @@
 import { Spin, Flex } from "antd";
+import { useTranslation } from "react-i18next";
 
 export const Spinner = () => {
+  const { t } = useTranslation();
   return (
     <Flex gap="middle" vertical>
       <Spin size="large">
@@ -12,7 +14,7 @@ export const Spinner = () => {
             marginTop: 180,
           }}
         >
-          Please wait...
+          {t("pleaseWait")}
         </h3>
       </Spin>
     </Flex>

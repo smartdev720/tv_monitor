@@ -17,6 +17,7 @@ exports.getT2SettingsByDeviceId = async (req, res) => {
           frequency: t2.frequency,
           symbol_rate: t2.symbol_rate,
           plp: t2.plp,
+          name: t2.name,
           active: t2.active,
           pwr: pwrs.length > 0 ? pwrs[0].pwr : null,
           dat4_cnt: pwrs.length > 0 ? pwrs[0].id : null,

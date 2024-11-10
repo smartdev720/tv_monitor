@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Popconfirm } from "antd";
 import { DeleteOutlined, EditOutlined, SendOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 
 export const ButtonGroup = ({
   handleEditClick,
@@ -10,7 +11,10 @@ export const ButtonGroup = ({
   onDeleteClick,
   onCancel,
   onSave,
+  isDelete,
+  isApply,
 }) => {
+  const { t } = useTranslation();
   return (
     <div style={{ textAlign: "right", marginTop: 20 }}>
       <Button
@@ -19,7 +23,7 @@ export const ButtonGroup = ({
         variant="solid"
         onClick={handleEditClick}
       >
-        Edit <EditOutlined style={{ marginLeft: 8 }} />
+        {t("edit")} <EditOutlined style={{ marginLeft: 8 }} />
       </Button>
       <Popconfirm
         open={open}
@@ -30,14 +34,16 @@ export const ButtonGroup = ({
           loading: popLoading,
         }}
       >
-        <Button
-          style={{ marginRight: 20 }}
-          color="danger"
-          variant="solid"
-          onClick={onDeleteClick}
-        >
-          Delete <DeleteOutlined style={{ marginLeft: 8 }} />
-        </Button>
+        {!isDelete && (
+          <Button
+            style={{ marginRight: 20 }}
+            color="danger"
+            variant="solid"
+            onClick={onDeleteClick}
+          >
+            {t("delete")} <DeleteOutlined style={{ marginLeft: 8 }} />
+          </Button>
+        )}
       </Popconfirm>
       <Button
         style={{ marginRight: 20 }}
@@ -45,7 +51,8 @@ export const ButtonGroup = ({
         variant="solid"
         onClick={onSave}
       >
-        Save <SendOutlined style={{ marginLeft: 8 }} />
+        {isApply ? `${t("apply")}` : `${t("save")}`}{" "}
+        <SendOutlined style={{ marginLeft: 8 }} />
       </Button>
     </div>
   );

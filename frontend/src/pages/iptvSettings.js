@@ -14,10 +14,10 @@ import {
   fetchAllDevices,
   fetchIPTVSettingsByDeviceId,
   updateIPTVSetting,
-  deleteIPTVSetting,
   runIPTVSettings,
 } from "../lib/api";
 import { formatDeviceId } from "../constant/func";
+import { useTranslation } from "react-i18next";
 
 export const IPTVSettings = () => {
   const [loading, setLoading] = useState(false);
@@ -34,6 +34,7 @@ export const IPTVSettings = () => {
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { t } = useTranslation();
 
   // Call APIs To Backend
   const getAllDevices = useCallback(async () => {
@@ -94,35 +95,34 @@ export const IPTVSettings = () => {
     }
   };
 
-  const deleteSelectedIPTVSetting = async (id) => {
-    try {
-      setPopLoading(true);
-      const response = await deleteIPTVSetting(id);
-      if (response.ok) {
-        setPopOpen(false);
-        const index = dataSource.findIndex((ds) => ds.key === id);
-        if (index !== -1) {
-          const dtSource = dataSource.filter((_, i) => i !== index);
-          setDataSource(dtSource);
-        }
-        setSelectedRow({});
-        setSelectedRowKey("");
-        message.success(response.message);
-      }
-    } catch (err) {
-      message.error("Server error");
-    } finally {
-      setPopLoading(false);
-    }
-  };
+  // const deleteSelectedIPTVSetting = async (id) => {
+  //   try {
+  //     setPopLoading(true);
+  //     const response = await deleteIPTVSetting(id);
+  //     if (response.ok) {
+  //       setPopOpen(false);
+  //       const index = dataSource.findIndex((ds) => ds.key === id);
+  //       if (index !== -1) {
+  //         const dtSource = dataSource.filter((_, i) => i !== index);
+  //         setDataSource(dtSource);
+  //       }
+  //       setSelectedRow({});
+  //       setSelectedRowKey("");
+  //       message.success(response.message);
+  //     }
+  //   } catch (err) {
+  //     message.error("Server error");
+  //   } finally {
+  //     setPopLoading(false);
+  //   }
+  // };
 
   const runScript = async (params) => {
     try {
       setLoading(true);
-      debugger;
       const response = await runIPTVSettings(params);
       if (response.ok) {
-        console.log(response.message);
+        message.success(t("runScriptSuccess"));
       }
     } catch (err) {
     } finally {
@@ -133,7 +133,10 @@ export const IPTVSettings = () => {
   //////////////////////////////////
 
   const handleDeviceChange = async (value) => {
-    const selectedDevice = devices.find((device) => device.id === value);
+    const selectedId = value.split(" ")[0];
+    const selectedDevice = devices.find(
+      (device) => device.id === Number(selectedId)
+    );
     setCurrentDevice(selectedDevice);
     await getIPTVSettingsByDeviceId(value);
   };
@@ -145,7 +148,7 @@ export const IPTVSettings = () => {
 
   const columns = [
     {
-      title: "Select",
+      title: "",
       render: (_, record) => (
         <Radio
           checked={selectedRowKey === record.key}
@@ -154,7 +157,7 @@ export const IPTVSettings = () => {
       ),
     },
     {
-      title: "Name",
+      title: `${t("name")}`,
       dataIndex: "name",
     },
     {
@@ -162,7 +165,7 @@ export const IPTVSettings = () => {
       dataIndex: "url",
     },
     {
-      title: "Active",
+      title: `${t("active")}`,
       render: (_, record) => (
         <Button
           style={{ width: 20, height: 33, borderRadius: "50%" }}
@@ -189,7 +192,7 @@ export const IPTVSettings = () => {
       setEditInput(selectedRow);
       setOpen(true);
     } else {
-      message.warning("Please select a setting you need to edit");
+      message.warning(t("selectRowValidation"));
     }
   };
 
@@ -205,17 +208,17 @@ export const IPTVSettings = () => {
     if (isValidEdit()) {
       await updateSelectedITPVSetting(editInput);
     } else {
-      message.warning("Please input correct values");
+      message.warning(t("inputValidation"));
     }
   };
 
-  const handleConfirmDeleteClick = async () => {
-    if (selectedRow.key) {
-      await deleteSelectedIPTVSetting(selectedRow.key);
-    } else {
-      message.warning("Please select the row");
-    }
-  };
+  // const handleConfirmDeleteClick = async () => {
+  //   if (selectedRow.key) {
+  //     await deleteSelectedIPTVSetting(selectedRow.key);
+  //   } else {
+  //     message.warning("Please select the row");
+  //   }
+  // };
 
   const handleSave = async () => {
     if (currentDevice.id && selectedRow.key) {
@@ -226,9 +229,7 @@ export const IPTVSettings = () => {
       ];
       await runScript(scriptParams);
     } else {
-      message.warning(
-        "Please select the device and IPTV setting row on the table"
-      );
+      message.warning(t("selectDeviceAndIPTVRowValidation"));
     }
   };
 
@@ -239,8 +240,8 @@ export const IPTVSettings = () => {
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
-        value: device.id,
-        label: device.name,
+        value: `${device.id} ${device.place}`,
+        label: `${device.id} ${device.place}`,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -258,48 +259,49 @@ export const IPTVSettings = () => {
             options={devicesOptions}
             handleChange={handleDeviceChange}
             placeholder="Devices"
-            value={currentDevice.id}
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Name"
-            value={currentDevice.name}
-            style={{ color: "black" }}
-            disabled
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Place"
-            value={currentDevice.place}
-            style={{ color: "black" }}
-            disabled
-          />
-        </Col>
-        <Col span={1}>
-          <Switch
-            style={{ padding: 10, marginRight: 20 }}
-            checked={
-              currentDevice.active && currentDevice.active === 1 ? true : false
+            value={
+              currentDevice.id
+                ? `${currentDevice.id} ${currentDevice.place}`
+                : t("selectDevice")
             }
           />
         </Col>
         <Col span={1}>
           <Button
-            style={{ width: 20, height: 33, borderRadius: "50%" }}
+            color={
+              currentDevice.active && currentDevice.active === 1
+                ? "primary"
+                : "danger"
+            }
+            variant="solid"
+          >
+            {t("active")}
+          </Button>
+        </Col>
+        <Col span={1}>
+          <Button
             color={
               currentDevice.online && currentDevice.online === 1
                 ? "primary"
                 : "danger"
             }
             variant="solid"
-          />
+          >
+            Online
+          </Button>
         </Col>
       </Row>
       <Row gutter={16} style={{ marginTop: 30 }}>
         <Col span={15}>
-          <Table columns={columns} dataSource={dataSource} pagination={false} />
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
+          />
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
@@ -309,9 +311,10 @@ export const IPTVSettings = () => {
             popLoading={popLoading}
             onDeleteClick={() => setPopOpen(true)}
             open={popOpen}
-            onDeleteConfirmClick={handleConfirmDeleteClick}
+            // onDeleteConfirmClick={handleConfirmDeleteClick}
             onCancel={() => setPopOpen(false)}
             onSave={handleSave}
+            isDelete={true}
           />
         </Col>
       </Row>
@@ -322,24 +325,26 @@ export const IPTVSettings = () => {
           setOpen(false);
           setEditInput({});
         }}
-        title="DVB-T2 Setting Edit"
+        title={t("iptvSettingEdit")}
         handleOk={handleModalOk}
       >
         <InputField
           name="name"
-          placeholder="Name"
+          placeholder={t("name")}
           value={editInput.name}
           onChange={handleModalOnChange}
+          isInvalid={!editInput.name || editInput.name === "" ? true : false}
         />
         <InputField
           name="url"
           placeholder="Url"
           value={editInput.url}
           onChange={handleModalOnChange}
+          isInvalid={!editInput.url || editInput.url === "" ? true : false}
         />
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
-            <label style={{ fontSize: "1em" }}>Active</label>
+            <label style={{ fontSize: "1em" }}>{t("active")}</label>
           </div>
           <Switch
             checked={editInput.active === 1}

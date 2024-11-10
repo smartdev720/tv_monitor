@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Col, Input, Row, Switch, Button, Table, Radio, message } from "antd";
+import { Col, Row, Switch, Button, Table, Radio, message } from "antd";
 import {
   ButtonGroup,
   CustomModal,
@@ -10,8 +10,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import {
-  deleteSelectedT2Setting,
-  deleteT2Setting,
   fetchAllDevices,
   fetchT2PmtsBySettingId,
   fetchT2SettingsByDeviceId,
@@ -23,6 +21,7 @@ import {
   getForamtedModulationFromDB,
   getForamtedModulationToDB,
 } from "../constant/func";
+import { useTranslation } from "react-i18next";
 
 export const T2Settings = () => {
   const [loading, setLoading] = useState(false);
@@ -40,6 +39,7 @@ export const T2Settings = () => {
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { t } = useTranslation();
 
   // Call APIs To Backend
   const getAllDevices = useCallback(async () => {
@@ -87,6 +87,7 @@ export const T2Settings = () => {
             frequency: dt.frequency,
             modulation_type: getForamtedModulationFromDB(dt.modulation_type),
             symbol_rate: dt.symbol_rate,
+            name: dt.name,
             plp: dt.plp,
             pwr: dt.pwr ? dt.pwr : "0",
             active: dt.active,
@@ -149,35 +150,35 @@ export const T2Settings = () => {
     }
   };
 
-  const deleteSelectedT2Setting = async (id) => {
-    try {
-      setPopLoading(true);
-      const response = await deleteT2Setting(id);
-      if (response.ok) {
-        setPopOpen(false);
-        const index = settingDataSource.findIndex((ds) => ds.key === id);
-        if (index !== -1) {
-          const dtSource = settingDataSource.filter((_, i) => i !== index);
-          setSettingDataSource(dtSource);
-        }
-        setSettingSelectedRow({});
-        setSettingSelectedRowKey("");
-        setPmtDataSource([]);
-        message.success(response.message);
-      }
-    } catch (err) {
-      message.error("Server error");
-    } finally {
-      setPopLoading(false);
-    }
-  };
+  // const deleteSelectedT2Setting = async (id) => {
+  //   try {
+  //     setPopLoading(true);
+  //     const response = await deleteT2Setting(id);
+  //     if (response.ok) {
+  //       setPopOpen(false);
+  //       const index = settingDataSource.findIndex((ds) => ds.key === id);
+  //       if (index !== -1) {
+  //         const dtSource = settingDataSource.filter((_, i) => i !== index);
+  //         setSettingDataSource(dtSource);
+  //       }
+  //       setSettingSelectedRow({});
+  //       setSettingSelectedRowKey("");
+  //       setPmtDataSource([]);
+  //       message.success(response.message);
+  //     }
+  //   } catch (err) {
+  //     message.error("Server error");
+  //   } finally {
+  //     setPopLoading(false);
+  //   }
+  // };
 
   const runScript = async (scriptParams) => {
     try {
       setLoading(true);
       const response = await runT2Settings(scriptParams);
       if (response.ok) {
-        message.success("Run script successfully");
+        t("runScriptSuccess");
       }
     } catch (err) {
       message.error("Server error");
@@ -201,7 +202,6 @@ export const T2Settings = () => {
 
   const settingColumn = [
     {
-      title: "Select",
       render: (_, record) => (
         <Radio
           checked={settingSelectedRowKey === record.key}
@@ -210,15 +210,19 @@ export const T2Settings = () => {
       ),
     },
     {
-      title: "Frequency",
+      title: `${t("name")}`,
+      dataIndex: "name",
+    },
+    {
+      title: `${t("frequency")}`,
       dataIndex: "frequency",
     },
     {
-      title: "Modulation Type",
+      title: `${t("modulationType")}`,
       dataIndex: "modulation_type",
     },
     {
-      title: "Symbol rate",
+      title: `${t("symbolRate")}`,
       dataIndex: "symbol_rate",
     },
     {
@@ -230,7 +234,7 @@ export const T2Settings = () => {
       dataIndex: "pwr",
     },
     {
-      title: "Active",
+      title: `${t("active")}`,
       render: (_, record) => (
         <Button
           style={{ width: 20, height: 33, borderRadius: "50%" }}
@@ -243,11 +247,11 @@ export const T2Settings = () => {
 
   const pmtColumn = [
     {
-      title: "Service name",
+      title: `${t("serviceName")}`,
       dataIndex: "service_name",
     },
     {
-      title: "Under control",
+      title: `${t("underControl")}`,
       dataIndex: "under_control",
       render: (_, record) => (
         <Switch
@@ -273,21 +277,24 @@ export const T2Settings = () => {
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
-        value: device.id,
-        label: device.id,
+        value: `${device.id} ${device.place}`,
+        label: `${device.id} ${device.place}`,
       }));
       setDevicesOptions(deviceOpts);
     }
   }, [devices]);
 
   const handleDeviceChange = async (value) => {
-    const selectedDevice = devices.find((device) => device.id === value);
+    const selectedId = value.split(" ")[0];
+    const selectedDevice = devices.find(
+      (device) => device.id === Number(selectedId)
+    );
     setCurrentDevice(selectedDevice);
     await getT2SettingsByDeviceId(value);
   };
 
-  const handleDeviceOnChange = (e) =>
-    setCurrentDevice({ ...currentDevice, [e.target.name]: e.target.value });
+  // const handleDeviceOnChange = (e) =>
+  //   setCurrentDevice({ ...currentDevice, [e.target.name]: e.target.value });
 
   const handleModalOnChange = (e) =>
     setEditInput({ ...editInput, [e.target.name]: e.target.value });
@@ -309,7 +316,7 @@ export const T2Settings = () => {
       setEditInput(settingSelectedRow);
       setOpen(true);
     } else {
-      message.warning("Please select a setting you need to edit");
+      message.warning(t("selectRowValidation"));
     }
   };
 
@@ -330,6 +337,9 @@ export const T2Settings = () => {
     if (!frequencyPattern.test(frequency)) {
       return false;
     }
+    if (Number(symbol_rate) < 5000 || Number(symbol_rate) > 7000) {
+      return false;
+    }
     return true;
   };
 
@@ -342,23 +352,23 @@ export const T2Settings = () => {
       };
       await updateSelectedT2SettingRow(data);
     } else {
-      message.error("Please input correct values");
+      message.error(t("inputValidation"));
     }
   };
 
-  const handleConfirmDeleteClick = async () => {
-    if (settingSelectedRow.key) {
-      await deleteSelectedT2Setting(settingSelectedRow.key);
-    } else {
-      message.warning("Please select a row");
-    }
-  };
+  // const handleConfirmDeleteClick = async () => {
+  //   if (settingSelectedRow.key) {
+  //     await deleteSelectedT2Setting(settingSelectedRow.key);
+  //   } else {
+  //     message.warning("Please select a row");
+  //   }
+  // };
 
   const handleSave = async () => {
     if (currentDevice.id) {
       await runScript({ device_id: currentDevice.id });
     } else {
-      message.error("Please select the device");
+      message.error(t("selectDeviceValidation"));
     }
   };
 
@@ -374,63 +384,62 @@ export const T2Settings = () => {
             options={devicesOptions}
             handleChange={handleDeviceChange}
             placeholder="Devices"
-            value={currentDevice.id}
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Name"
-            value={currentDevice.name}
-            style={{ color: "black" }}
-            onChange={handleDeviceOnChange}
-            disabled
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Place"
-            value={currentDevice.place}
-            style={{ color: "black" }}
-            onChange={handleDeviceOnChange}
-            disabled
-          />
-        </Col>
-        <Col span={1}>
-          <Switch
-            style={{ padding: 10, marginRight: 20 }}
-            checked={
-              currentDevice.active && currentDevice.active === 1 ? true : false
+            value={
+              currentDevice.id
+                ? `${currentDevice.id} ${currentDevice.place}`
+                : t("selectDevice")
             }
           />
         </Col>
+        <Col span={2}>
+          <Button
+            color={
+              currentDevice.active && currentDevice.active === 1
+                ? "primary"
+                : "danger"
+            }
+            variant="solid"
+          >
+            {t("active")}
+          </Button>
+        </Col>
         <Col span={1}>
           <Button
-            style={{ width: 20, height: 33, borderRadius: "50%" }}
             color={
               currentDevice.online && currentDevice.online === 1
                 ? "primary"
                 : "danger"
             }
             variant="solid"
-          />
+          >
+            Online
+          </Button>
         </Col>
       </Row>
       <Row gutter={16} style={{ marginTop: 30 }}>
         <Col span={15}>
-          <h1>DVB-T2 Settings</h1>
+          <h1>DVB-T2 {t("settings")}</h1>
           <Table
             columns={settingColumn}
             dataSource={settingDataSource}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
-          <h1>Programs in the multiplex</h1>
+          <h1>{t("programsInTheMultiplex")}</h1>
           <Table
             columns={pmtColumn}
             dataSource={pmtDataSource}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
       </Row>
@@ -439,9 +448,11 @@ export const T2Settings = () => {
         popLoading={popLoading}
         onDeleteClick={() => setPopOpen(true)}
         open={popOpen}
-        onDeleteConfirmClick={handleConfirmDeleteClick}
+        // onDeleteConfirmClick={handleConfirmDeleteClick}
         onCancel={() => setPopOpen(false)}
         onSave={handleSave}
+        isDelete={true}
+        isApply={true}
       />
       <CustomModal
         open={open}
@@ -450,19 +461,19 @@ export const T2Settings = () => {
           setOpen(false);
           setEditInput({});
         }}
-        title="DVB-T2 Setting Edit"
+        title={t("dvbt2SettingEdit")}
         handleOk={handleModalOk}
       >
         <InputField
           name="frequency"
-          placeholder="Frequency"
+          placeholder={t("frequency")}
           value={editInput.frequency}
           onChange={handleModalOnChange}
-          tooltip="Frequency must be a 6-digit string from 045000 to 850000."
+          tooltip={t("frequencyPlaceHolder")}
         />
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
-            <label style={{ fontSize: "1em" }}>Modulation Type</label>
+            <label style={{ fontSize: "1em" }}>{t("modulationType")}</label>
           </div>
           <Dropdown
             options={modulationOptions}
@@ -473,20 +484,29 @@ export const T2Settings = () => {
         </div>
         <InputField
           name="symbol_rate"
-          placeholder="Symbol rate"
+          placeholder={t("symbolRate")}
           value={editInput.symbol_rate}
           onChange={handleModalOnChange}
+          isInvalid={
+            !editInput.symbol_rate ||
+            editInput.symbol_rate === "" ||
+            Number(editInput.symbol_rate) < 5000 ||
+            Number(editInput.symbol_rate) > 7000
+              ? true
+              : false
+          }
         />
         <InputField
           name="plp"
           placeholder="PLP"
           value={editInput.plp}
           onChange={handleModalOnChange}
-          tooltip="PLP must be a digit"
+          tooltip={t("plpTooltip")}
+          isInvalid={!editInput.plp || editInput.plp === "" ? true : false}
         />
         <div style={{ marginTop: 20 }}>
           <div style={{ marginBottom: 5 }}>
-            <label style={{ fontSize: "1em" }}>Active</label>
+            <label style={{ fontSize: "1em" }}>{t("active")}</label>
           </div>
           <Switch
             checked={editInput.active === 1}

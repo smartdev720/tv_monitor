@@ -18,6 +18,7 @@ exports.getCableSettingsByDeviceId = async (req, res) => {
           frequency: cable.frequency,
           symbol_rate: cable.symbol_rate,
           plp: cable.plp,
+          name: cable.name,
           active: cable.active,
           pwr: pwrs.length > 0 ? pwrs[0].pwr : null,
           dat4_cnt: pwrs.length > 0 ? pwrs[0].id : null,

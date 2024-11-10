@@ -17,10 +17,9 @@ exports.getAllDevices = async (req, res) => {
 
 exports.updateOne = async (req, res) => {
   try {
-    const { id, name, place, active } = req.body;
-    const sql =
-      "UPDATE devices SET name = ?, place = ?, active = ? WHERE id = ? ;";
-    const result = await queryAsync(sql, [name, place, active, id]);
+    const { id, place, active } = req.body;
+    const sql = "UPDATE devices SET place = ?, active = ? WHERE id = ? ;";
+    const result = await queryAsync(sql, [place, active, id]);
     if (!result) {
       return res.status(400).json({ ok: false, message: "Server error" });
     }

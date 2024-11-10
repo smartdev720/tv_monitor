@@ -9,7 +9,7 @@ import {
   Input,
   Checkbox,
 } from "antd";
-import { Dropdown, Spinner } from "../components/common";
+import { Spinner } from "../components/common";
 import { SaveOutlined, SendOutlined } from "@ant-design/icons";
 import {
   fetchAllGroups,
@@ -17,6 +17,8 @@ import {
   insertSchedule,
   updateSchedule,
 } from "../lib/api";
+import Papa from "papaparse";
+import { useTranslation } from "react-i18next";
 
 export const Schedules = () => {
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,8 @@ export const Schedules = () => {
   const [formattedData, setFormattedData] = useState({});
   const [editId, setEditId] = useState("");
 
+  const { t } = useTranslation();
+
   // Call APIs To Backend
   const getAllGroups = useCallback(async () => {
     try {
@@ -37,7 +41,7 @@ export const Schedules = () => {
         const { data } = response;
         const dataSource = data.map((dt, index) => ({
           key: dt.id,
-          no: index + 1,
+          no: dt.id,
           channel: dt.channel,
           name: dt.name,
         }));
@@ -54,15 +58,24 @@ export const Schedules = () => {
     try {
       setLoading(true);
       const response = await fetchAllSchedules();
-      debugger;
       if (response.ok) {
         const { data } = response;
-        const dataSource = data.map((dt) => ({
-          key: dt.id,
-          type: dt.type === 0 ? "date" : "everyday",
-          date: dt.date ? new Date(dt.date).toISOString().split("T")[0] : "",
-          text: JSON.parse(dt.text),
-        }));
+        const dataSource = data.map((dt) => {
+          const csvData = dt.text;
+          const parsedCsvData = Papa.parse(csvData, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+          }).data;
+          const formattedData = fillEditDataSourceFromCSV(parsedCsvData);
+          return {
+            key: dt.id,
+            type: dt.type === 0 ? t("date") : t("everyday"),
+            date: dt.date ? new Date(dt.date).toISOString().split("T")[0] : "",
+            text: formattedData,
+          };
+        });
+
         setScheduleDataSource(dataSource);
       }
     } catch (err) {
@@ -81,14 +94,17 @@ export const Schedules = () => {
         setData({});
         fillEditDataSource();
         setTypeDropdownValue("0");
+        const formattedText = fillEditDataSourceFromCSV(
+          transformToOriginalFormat(schedule.text)
+        );
         const newScheduleEntry = {
           key: scheduleDataSource.length + 1,
-          type: schedule.type === "0" ? "date" : "everyday",
+          type: schedule.type === "0" ? t("date") : t("everyday"),
           date: schedule.date ? schedule.date : "",
-          text: schedule.text,
+          text: formattedText,
         };
         setScheduleDataSource((prevData) => [...prevData, newScheduleEntry]);
-        message.success(response.message);
+        message.success(t("savedSuccessfully"));
       }
     } catch (err) {
       message.error("Server error");
@@ -105,11 +121,14 @@ export const Schedules = () => {
         setData({});
         fillEditDataSource();
         setTypeDropdownValue("0");
+        const formattedText = fillEditDataSourceFromCSV(
+          transformToOriginalFormat(schedule.text)
+        );
         const updatedScheduleEntry = {
           key: editId,
-          type: schedule.type === "0" ? "date" : "everyday",
+          type: schedule.type === "0" ? t("date") : t("everyday"),
           date: schedule.date ? schedule.date : "",
-          text: schedule.text,
+          text: formattedText,
         };
         setScheduleDataSource((prevData) =>
           prevData.map((item) =>
@@ -147,14 +166,14 @@ export const Schedules = () => {
 
   // Columns
   const scheduleColumns = [
-    { title: "Type", dataIndex: "type" },
-    { title: "Date", dataIndex: "date" },
+    { title: t("type"), dataIndex: "type" },
+    { title: t("date"), dataIndex: "date" },
   ];
 
   const groupColumns = [
     { title: "No", dataIndex: "no" },
-    { title: "Channel", dataIndex: "channel" },
-    { title: "Name", dataIndex: "name" },
+    { title: t("channel"), dataIndex: "channel" },
+    { title: t("name"), dataIndex: "name" },
   ];
 
   const editColumns = [
@@ -251,13 +270,13 @@ export const Schedules = () => {
     }
   };
 
-  const fillEditDataSourceFromText = (text) => {
+  const fillEditDataSourceFromCSV = (text) => {
     let newDataSource = [];
+
     for (let i = 0; i < 24; i++) {
-      let rowKey = i.toString().padStart(2, "0");
       let hourEntry = {
-        key: rowKey,
-        empty: rowKey,
+        key: i.toString().padStart(2, "0"),
+        empty: i.toString().padStart(2, "0"),
         zero: "",
         first: "",
         second: "",
@@ -265,32 +284,62 @@ export const Schedules = () => {
         fourth: "",
         fifth: "",
       };
-      const hourData = text.find((item) => item.hour === i);
-      if (hourData) {
-        hourData.minuteAndGroupId.forEach((minuteData) => {
-          const minuteIndex = minuteData.minute / 10;
-          hourEntry[
-            ["zero", "first", "second", "third", "fourth", "fifth"][minuteIndex]
-          ] = minuteData.groupId.toString();
-        });
-      }
+
+      text.forEach((item) => {
+        if (item.hour === i) {
+          const timeSlotIndex = item.minute / 10;
+          const timeSlots = [
+            "zero",
+            "first",
+            "second",
+            "third",
+            "fourth",
+            "fifth",
+          ];
+
+          hourEntry[timeSlots[timeSlotIndex]] = item.groupId.toString();
+        }
+      });
+
       newDataSource.push(hourEntry);
     }
+
     return newDataSource;
   };
 
+  const transformToOriginalFormat = (scheduleData) => {
+    const result = [];
+    scheduleData.forEach((entry) => {
+      entry.minuteAndGroupId.forEach((minuteData) => {
+        result.push({
+          groupId: minuteData.groupId,
+          hour: entry.hour,
+          minute: minuteData.minute,
+        });
+      });
+    });
+
+    return result;
+  };
+
   const handleDatePickerChange = (date) => {
-    if (!date) return;
-    const selectedDate = new Date(date.$d).toISOString().split("T")[0];
+    if (!date) {
+      setData((prevData) => ({ ...prevData, date: null }));
+      return;
+    }
+    const localDate = new Date(date.$d);
+    localDate.setMinutes(
+      localDate.getMinutes() - localDate.getTimezoneOffset()
+    );
+    const selectedDate = localDate.toISOString().split("T")[0];
     const filtered = scheduleDataSource.filter(
       (sds) => sds.date === selectedDate
     );
     if (filtered.length > 0) {
       const text = filtered[0].text;
-      const newEditDataSource = fillEditDataSourceFromText(text);
-      setEditDataSource(newEditDataSource);
+      setEditDataSource(text);
       setEditId(filtered[0].key);
-      message.info("You have already edited, if you want, please edit more.");
+      message.info(t("scheduleAlreadyEdited"));
     } else {
       fillEditDataSource();
       setEditId("");
@@ -333,7 +382,7 @@ export const Schedules = () => {
             (gds) => gds.key === Number(rcol)
           );
           if (filtered.length === 0) {
-            message.error("Please input correct group numbers");
+            message.error(t("inputCorrectGroupNumber"));
             return false;
           }
         }
@@ -341,14 +390,14 @@ export const Schedules = () => {
     }
     const { date } = data;
     if (typeDropdownValue === "") {
-      message.error("Please select the type");
+      message.error(t("selectType"));
       return false;
     }
     if (typeDropdownValue === "0") {
       const selectedDate = new Date(date.$d).getTime();
       const today = new Date().setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        message.error("The selected date cannot be before today.");
+        message.error(t("selectedDateValidation"));
         return false;
       }
     }
@@ -387,11 +436,25 @@ export const Schedules = () => {
       }
 
       const { date } = data;
-      const fData = {
-        type: typeDropdownValue,
-        date: date ? new Date(date.$d).toISOString().split("T")[0] : null,
-        text,
-      };
+      let fData = {};
+      if (date) {
+        const localDate = new Date(date.$d);
+        localDate.setMinutes(
+          localDate.getMinutes() - localDate.getTimezoneOffset()
+        );
+        const selectedDate = localDate.toISOString().split("T")[0];
+        fData = {
+          type: typeDropdownValue,
+          date: selectedDate,
+          text,
+        };
+      } else {
+        fData = {
+          type: typeDropdownValue,
+          date: null,
+          text,
+        };
+      }
       setFormattedData(fData);
       await saveSchedule(fData);
     }
@@ -401,7 +464,6 @@ export const Schedules = () => {
     if (validate()) {
       let text = [];
       for (const sd of editDataSource) {
-        debugger;
         const result = getValuesForRowAndColumns(sd.key, [
           "zero",
           "first",
@@ -429,12 +491,27 @@ export const Schedules = () => {
       }
 
       const { date } = data;
-      const fData = {
-        id: editId,
-        type: typeDropdownValue,
-        date: date ? new Date(date.$d).toISOString().split("T")[0] : null,
-        text,
-      };
+      let fData = {};
+      if (date) {
+        const localDate = new Date(date.$d);
+        localDate.setMinutes(
+          localDate.getMinutes() - localDate.getTimezoneOffset()
+        );
+        const selectedDate = localDate.toISOString().split("T")[0];
+        fData = {
+          id: editId,
+          type: typeDropdownValue,
+          date: selectedDate,
+          text,
+        };
+      } else {
+        fData = {
+          id: editId,
+          type: typeDropdownValue,
+          date: null,
+          text,
+        };
+      }
       setFormattedData(fData);
       await editSchedule(fData);
     }
@@ -460,11 +537,15 @@ export const Schedules = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={5}>
-          <h1>List Of Schedules</h1>
+          <h1>{t("listOfSchedules")}</h1>
           <Table
             columns={scheduleColumns}
             dataSource={scheduleDataSource}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={1}></Col>
@@ -472,7 +553,7 @@ export const Schedules = () => {
           <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 5 }}>
               <label style={{ fontSize: "1em", color: "gray" }}>
-                Select Date
+                {t("selectDate")}
               </label>
             </div>
             <DatePicker
@@ -484,30 +565,37 @@ export const Schedules = () => {
           </div>
           <div style={{ marginTop: 20 }}>
             <label style={{ fontSize: "1em", color: "gray", marginRight: 20 }}>
-              Use Daily
+              {t("useDaily")}
             </label>
             <Checkbox
               checked={typeDropdownValue === "1"}
               value={typeDropdownValue}
               onChange={handleTypeDropdownChange}
-              disabled={editId !== ""}
             />
           </div>
-          <h1>List Of Groups</h1>
+          <h1>{t("listOfGroups")}</h1>
           <Table
             columns={groupColumns}
             dataSource={groupDataSource}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
-          <h1>Edit Schedules</h1>
+          <h1>{t("editSchedules")}</h1>
           <Table
             columns={editColumns}
             dataSource={editDataSource}
             pagination={false}
             bordered
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
       </Row>
@@ -520,11 +608,11 @@ export const Schedules = () => {
         >
           {editId === "" ? (
             <Button color="primary" variant="solid" onClick={handleSave}>
-              Save <SendOutlined style={{ marginLeft: 8 }} />
+              {t("save")} <SendOutlined style={{ marginLeft: 8 }} />
             </Button>
           ) : (
             <Button color="primary" variant="solid" onClick={handleEdit}>
-              Edit <SaveOutlined style={{ marginLeft: 8 }} />
+              {t("edit")} <SaveOutlined style={{ marginLeft: 8 }} />
             </Button>
           )}
         </div>

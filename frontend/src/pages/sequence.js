@@ -8,7 +8,7 @@ import {
   fetchSequence7,
   fetchSequence10,
   fetchSequence1,
-  insertSequence,
+  updateSequence,
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
@@ -19,6 +19,7 @@ import {
   DeleteRowOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 
 export const Sequence = () => {
   const [devicesOptions, setDevicesOptions] = useState([]);
@@ -40,9 +41,13 @@ export const Sequence = () => {
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { t } = useTranslation();
 
   const handleDeviceChange = (value) => {
-    const selectedDevice = devices.find((device) => device.id === value);
+    const selectedId = value.split(" ")[0];
+    const selectedDevice = devices.find(
+      (device) => device.id === Number(selectedId)
+    );
     setCurrentDevice(selectedDevice);
     setCommandDataSource([]);
     setSequenceDataSource([]);
@@ -75,8 +80,8 @@ export const Sequence = () => {
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
-        value: device.id,
-        label: device.id,
+        value: `${device.id} ${device.place}`,
+        label: `${device.id} ${device.place}`,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -104,61 +109,103 @@ export const Sequence = () => {
 
   const sequence6Columns = [
     {
-      title: "Service Name",
+      title: `${t("serviceName")}`,
       dataIndex: "service_name",
     },
     {
-      title: "Logo",
-      dataIndex: "channel_logo",
+      title: `${t("logo")}`,
+      render: (_, record) => {
+        const logoSrc = `./logos/${record.logo}.png`;
+
+        return (
+          <>
+            <img
+              src={logoSrc}
+              alt={record.logo}
+              style={{ width: 50, height: "auto" }}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextElementSibling.style.display = "inline";
+              }}
+            />
+            <img
+              src="./logos/PROVENCE.png"
+              alt="nologo"
+              style={{ display: "none", width: 50, height: "auto" }}
+            />
+          </>
+        );
+      },
     },
   ];
 
   const sequence4Columns = [
     {
-      title: "Frequency",
-      dataIndex: "frequency",
+      title: `${t("frequency")}`,
+      dataIndex: "name",
     },
   ];
 
   const sequence1Columns = [
     {
-      title: "Frequency",
-      dataIndex: "frequency",
+      title: `${t("frequency")}`,
+      dataIndex: "name",
     },
   ];
 
   const sequence3Columns = [
     {
-      title: "Service Name",
+      title: `${t("serviceName")}`,
       dataIndex: "service_name",
     },
     {
-      title: "Logo",
-      dataIndex: "logo",
+      title: `${t("logo")}`,
+      render: (_, record) => {
+        const logoSrc = `./logos/${record.logo}.png`;
+
+        return (
+          <>
+            <img
+              src={logoSrc}
+              alt={record.logo}
+              style={{ width: 50, height: "auto" }}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextElementSibling.style.display = "inline";
+              }}
+            />
+            <img
+              src="./logos/PROVENCE.png"
+              alt="nologo"
+              style={{ display: "none", width: 50, height: "auto" }}
+            />
+          </>
+        );
+      },
     },
   ];
 
   const sequence7Columns = [
     {
-      title: "IPTV Setting Name",
-      dataIndex: "setting_name",
+      title: `${t("serviceName")}`,
+      dataIndex: "service_name",
     },
   ];
 
   const sequence10Columns = [
     {
-      title: "Service Name",
+      title: `${t("serviceName")}`,
       dataIndex: "service_name",
     },
   ];
 
   const sequenceCommandColumns = [
     {
-      title: "Command Number",
+      title: `${t("commandNumber")}`,
       dataIndex: "command_number",
     },
     {
-      title: "Data",
+      title: `${t("data")}`,
       dataIndex: "data",
     },
     {
@@ -196,7 +243,7 @@ export const Sequence = () => {
           return;
       }
     } else {
-      message.info("Please select the available device");
+      message.info(t("selectDeviceValidation"));
     }
   };
 
@@ -212,15 +259,15 @@ export const Sequence = () => {
         const dataSource = data.map((dt) => ({
           key: dt.id,
           service_name: dt.service_name,
-          channel_logo: dt.logo ? dt.logo : "No logo",
+          logo: dt.service_name,
           frequency: dt.frequency,
+          name: dt.name,
         }));
         setCommandDataSource(dataSource);
       } else {
         message.error("Failed to fetch data. Please try again.");
       }
     } catch (error) {
-      console.error("Error fetching sequence 6:", error);
       message.error("An error occurred while fetching data.");
     } finally {
       setLoading(false);
@@ -241,6 +288,8 @@ export const Sequence = () => {
             frequency: dt.frequency,
             service_name: dt.service_name,
             t2_setting_id: dt.t2_setting_id,
+            name: dt.name,
+            isFrequency: true,
           });
         });
         setCommandDataSource(dataSource);
@@ -270,7 +319,7 @@ export const Sequence = () => {
           return;
       }
     } else {
-      message.info("Please select the available device");
+      message.info(t("selectDeviceValidation"));
     }
   };
 
@@ -287,6 +336,8 @@ export const Sequence = () => {
             key: dt.id,
             frequency: dt.frequency,
             service_name: dt.service_name,
+            name: dt.name,
+            isFrequency: true,
           });
         });
         setCommandDataSource(dataSource);
@@ -309,7 +360,8 @@ export const Sequence = () => {
           key: dt.id,
           service_name: dt.service_name ? dt.service_name : "No service",
           frequency: dt.frequency,
-          logo: dt.logo ? dt.logo : "No logo",
+          logo: dt.service_name,
+          name: dt.name,
         }));
         setCommandDataSource(dataSource);
       }
@@ -326,7 +378,7 @@ export const Sequence = () => {
       setCommandNumber(value);
       getSequence10();
     } else {
-      message.info("Please select the available device");
+      message.info(t("selectDeviceValidation"));
     }
   };
 
@@ -360,7 +412,7 @@ export const Sequence = () => {
       setCommandNumber(value);
       getSequence7();
     } else {
-      message.info("Please select the available device");
+      message.info(t("selectDeviceValidation"));
     }
   };
 
@@ -375,7 +427,7 @@ export const Sequence = () => {
         data.forEach((dt) => {
           dataSource.push({
             key: dt.id,
-            setting_name: dt.name,
+            service_name: dt.name,
           });
         });
         setCommandDataSource(dataSource);
@@ -449,7 +501,7 @@ export const Sequence = () => {
     },
     {
       key: "3",
-      label: "Analog",
+      label: t("analog"),
       children: (
         <Dropdown
           options={analogDropdownItems}
@@ -475,20 +527,17 @@ export const Sequence = () => {
 
   const handleMove = () => {
     if (transferCommandParameter && transferCommand.key && commandNumber) {
-      debugger;
       if (!sequenceDataSource.some((sd) => sd.key === transferCommand.key)) {
         const transfer = {
           key: transferCommand.key,
           command_number: commandNumber,
-          data: `${
-            transferCommand.service_name
-              ? transferCommand.service_name
-              : "No service"
-          } ${
-            transferCommand.frequency
-              ? transferCommand.frequency
-              : "No frequency"
-          }`,
+          data: transferCommand.isFrequency
+            ? transferCommand.name
+            : `${
+                transferCommand.service_name
+                  ? transferCommand.service_name
+                  : "No service"
+              }`,
           stl: transferCommand.stl,
         };
         let newSequenceDataSource;
@@ -506,7 +555,7 @@ export const Sequence = () => {
         }
         setSequenceDataSource(newSequenceDataSource);
       } else {
-        message.warning("You have already added");
+        message.warning(t("alreadyAddedValidation"));
       }
     }
   };
@@ -522,21 +571,21 @@ export const Sequence = () => {
         newSequenceDataSource.splice(index, 1);
         setSequenceDataSource(newSequenceDataSource);
       } else {
-        message.warning("Item not found");
+        message.warning(t("itemNotFound"));
       }
     } else {
-      message.warning("Please select an item to remove");
+      message.warning(t("selectItemValidation"));
     }
   };
 
   const handleSTLChange = (value, key) => {
     const numericValue = Number(value);
     if (isNaN(numericValue) || numericValue > 64 || numericValue < 1) {
-      message.warning("Please input the STL between 1 and 64");
+      message.warning(t("stlValidation"));
       return;
     }
     if (value.length > 2) {
-      message.warning("Please input correct STL.");
+      message.warning(t("stlValidation"));
       return;
     }
     setSequenceDataSource((prevData) =>
@@ -546,10 +595,32 @@ export const Sequence = () => {
     );
   };
 
-  const addNewOne = async (data) => {
+  // const addNewOne = async (data) => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await insertSequence({
+  //       command_list: data,
+  //       device_id: currentDevice.id,
+  //     });
+  //     if (response.ok) {
+  //       message.success(response.message);
+  //       setSequenceDataSource([]);
+  //       setSelectedSequence({});
+  //       setSelectedSequenceKey("");
+  //       setTransferCommand({});
+  //       setTransferCommandParameter("");
+  //     }
+  //   } catch (err) {
+  //     message.error("Server error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const updateSequencesToDB = async (data) => {
     try {
       setLoading(true);
-      const response = await insertSequence({
+      const response = await updateSequence({
         command_list: data,
         device_id: currentDevice.id,
       });
@@ -587,9 +658,9 @@ export const Sequence = () => {
       params.forEach((param) => {
         data += ` ${param}`;
       });
-      await addNewOne(data);
+      await updateSequencesToDB(data);
     } else {
-      message.warning("There is no added row in Sequence Table");
+      message.warning(t("sequenceSaveValidation"));
     }
   };
 
@@ -604,54 +675,50 @@ export const Sequence = () => {
           <Dropdown
             options={devicesOptions}
             handleChange={handleDeviceChange}
-            placeholder="devices"
-            value={currentDevice.id}
+            placeholder={t("devices")}
+            value={
+              currentDevice.id
+                ? `${currentDevice.id} ${currentDevice.place}`
+                : t("selectDevice")
+            }
           />
         </Col>
-        <Col span={4}>
-          <Input
-            placeholder="device name"
-            value={currentDevice.name && currentDevice.name}
-            disabled
-            style={{ color: "black" }}
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="device place"
-            value={currentDevice.place && currentDevice.place}
-            disabled
-            style={{ color: "black" }}
-          />
-        </Col>
-        <Col span={4}>
+        <Col span={2}>
           <Button
-            style={{ padding: 10, marginRight: 20 }}
             color={
               currentDevice.active && currentDevice.active === 1
                 ? "primary"
                 : "danger"
             }
             variant="solid"
-          />
+          >
+            {t("active")}
+          </Button>
+        </Col>
+        <Col span={1}>
           <Button
-            style={{ padding: 10 }}
             color={
               currentDevice.online && currentDevice.online === 1
                 ? "primary"
                 : "danger"
             }
             variant="solid"
-          />
+          >
+            Online
+          </Button>
         </Col>
       </Row>
       <Row gutter={16} style={{ marginTop: 20 }}>
         <Col span={10}>
-          <h1 style={{ marginBottom: 20 }}>Commands</h1>
+          <h1 style={{ marginBottom: 20 }}>{t("commands")}</h1>
           <Tab
             items={tabItems}
             onChange={handleTabChange}
             activeKey={tabActiveKey}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
           <Table
             rowSelection={{
@@ -662,6 +729,10 @@ export const Sequence = () => {
             dataSource={commandDataSource}
             style={{ marginTop: 20 }}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={2}>
@@ -670,11 +741,12 @@ export const Sequence = () => {
             style={{ position: "fixed", marginTop: 200 }}
             onClick={handleMove}
           >
-            Move <RightOutlined style={{ marginLeft: 8, color: "white" }} />
+            {t("move")}{" "}
+            <RightOutlined style={{ marginLeft: 8, color: "white" }} />
           </Button>
         </Col>
         <Col span={10}>
-          <h1 style={{ marginBottom: 130 }}>Sequence</h1>
+          <h1 style={{ marginBottom: 130 }}>{t("sequence")}</h1>
           <Table
             rowSelection={{
               type: "radio",
@@ -684,6 +756,10 @@ export const Sequence = () => {
             dataSource={sequenceDataSource}
             style={{ marginTop: 20 }}
             pagination={false}
+            scroll={{
+              x: 0,
+              y: 500,
+            }}
           />
         </Col>
         <Col span={2}>
@@ -692,7 +768,7 @@ export const Sequence = () => {
             style={{ position: "fixed", marginTop: 200 }}
             onClick={handleRemove}
           >
-            Remove{" "}
+            {t("remove")}{" "}
             <DeleteRowOutlined style={{ marginLeft: 8, color: "white" }} />
           </Button>
         </Col>
@@ -702,7 +778,7 @@ export const Sequence = () => {
         type="primary"
         onClick={handleSaveCommands}
       >
-        Save <SaveOutlined style={{ marginLeft: 8, color: "white" }} />
+        {t("save")} <SaveOutlined style={{ marginLeft: 8, color: "white" }} />
       </Button>
     </div>
   );

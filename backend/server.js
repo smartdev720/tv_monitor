@@ -18,6 +18,7 @@ const scheduleRoutes = require("./routes/scheduleRoutes");
 const runScriptRoutes = require("./routes/runScriptRoutes");
 require("dotenv").config();
 require("./config/passport")(passport);
+const path = require("path");
 
 const app = express();
 
@@ -79,7 +80,7 @@ app.use(
 );
 app.use(
   "/api/script-run",
-  passport.authenticate("jwt", { session: false }),
+  // passport.authenticate("jwt", { session: false }),
   runScriptRoutes
 );
 

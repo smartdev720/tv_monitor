@@ -1,15 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Table,
-  Input,
-  Progress,
-  Radio,
-  Switch,
-  message,
-} from "antd";
+import { Row, Col, Button, Table, Progress, Radio, message } from "antd";
 import {
   CustomModal,
   Dropdown,
@@ -26,6 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { EditOutlined, SendOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 
 export const AnalogSettings = () => {
   const [loading, setLoading] = useState(false);
@@ -40,9 +31,11 @@ export const AnalogSettings = () => {
   const [pwrPercent, setPwrPercent] = useState(0);
   const [standartDropdownValue, setStandartDropdownValue] = useState("");
   const [activeDropdownValue, setActiveDropdownValue] = useState("");
+  const [videoSrc, setVideoSrc] = useState("");
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
+  const { t } = useTranslation();
 
   const getAllDevices = useCallback(async () => {
     try {
@@ -65,8 +58,8 @@ export const AnalogSettings = () => {
   useEffect(() => {
     if (devices.length > 0) {
       const deviceOpts = devices.map((device) => ({
-        value: device.id,
-        label: device.id,
+        value: `${device.id} ${device.place}`,
+        label: `${device.id} ${device.place}`,
       }));
       setDevicesOptions(deviceOpts);
     }
@@ -75,14 +68,17 @@ export const AnalogSettings = () => {
   const handleDeviceChange = async (value) => {
     try {
       setLoading(true);
-      const selectedDevice = devices.find((device) => device.id === value);
+      const selectedId = value.split(" ")[0];
+      const selectedDevice = devices.find(
+        (device) => device.id === Number(selectedId)
+      );
       setCurrentDevice(selectedDevice);
-      const response = await fetchAnalogSettingsByDeviceId(value);
+      const response = await fetchAnalogSettingsByDeviceId(selectedId);
       if (response.ok) {
         const { data } = response;
         const ds = data.map((dt) => ({
           key: dt.id,
-          logo: `logos / ${dt.program_name ? dt.program_name : "nologo.png"}`,
+          logo: dt.program_name,
           program_name: dt.program_name,
           frequency: dt.frerquency,
           standart: dt.standart,
@@ -111,7 +107,6 @@ export const AnalogSettings = () => {
       setConfirmLoading(true);
       const response = await updateAnalogSetting(data);
       if (response.ok) {
-        debugger;
         setDataSource((prevData) =>
           prevData.map((item) =>
             item.key === data.key
@@ -143,6 +138,7 @@ export const AnalogSettings = () => {
       const response = await runAnalogSettings(scriptParams);
       if (response.ok) {
         message.success("Run script successfully");
+        setVideoSrc("/9/1365.mp4");
       }
     } catch (err) {
       message.error("Server error");
@@ -153,7 +149,7 @@ export const AnalogSettings = () => {
 
   const columns = [
     {
-      title: "Select",
+      title: `${t("select")}`,
       render: (_, record) => (
         <Radio
           checked={selectedRowKey === record.key}
@@ -162,26 +158,47 @@ export const AnalogSettings = () => {
       ),
     },
     {
-      title: "Logo",
-      dataIndex: "logo",
+      title: `${t("logo")}`,
+      render: (_, record) => {
+        const logoSrc = `./logos/${record.logo}.png`;
+
+        return (
+          <>
+            <img
+              src={logoSrc}
+              alt={record.logo}
+              style={{ width: 50, height: "auto" }}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextElementSibling.style.display = "inline";
+              }}
+            />
+            <img
+              src="./logos/PROVENCE.png"
+              alt="nologo"
+              style={{ display: "none", width: 50, height: "auto" }}
+            />
+          </>
+        );
+      },
     },
     {
-      title: "Program Name",
+      title: `${t("programName")}`,
       dataIndex: "program_name",
       editable: true,
     },
     {
-      title: "Frequency",
+      title: `${t("frequency")}`,
       dataIndex: "frequency",
       editable: true,
     },
     {
-      title: "Standard",
+      title: `${t("standart")}`,
       dataIndex: "standart",
       editable: true,
     },
     {
-      title: "Active",
+      title: `${t("active")}`,
       dataIndex: "active",
       render: (active) => (
         <Button
@@ -219,18 +236,16 @@ export const AnalogSettings = () => {
 
     const frequencyPattern = /^(045000|[0-7][0-9]{5}|8[0-4][0-9]{4}|850000)$/;
     if (!frequencyPattern.test(frequency)) {
-      errors.frequency =
-        "Frequency must be a 6-digit string from 045000 to 850000.";
+      errors.frequency = t("frequencyPlaceHolder");
     }
 
     const validStandards = ["0", "1", "2", "3", "4"];
     if (!validStandards.includes(standard)) {
-      errors.standard =
-        "Standard must be one of the following: 0 (M/N), 1 (B), 2 (G/H), 3 (I), 4 (D/K).";
+      errors.standard = t("standartValidation");
     }
 
     if (!programName || programName.trim() === "") {
-      errors.programName = "Program name is required.";
+      errors.programName = t("programNameValidation");
     }
 
     return errors;
@@ -243,8 +258,10 @@ export const AnalogSettings = () => {
     if (selectedRow.key) {
       setOpen(true);
       setEditInput({ ...selectedRow, logo: selectedRow.logo.split("/")[1] });
+      setStandartDropdownValue(selectedRow.standart);
+      setActiveDropdownValue(selectedRow.active);
     } else {
-      message.warning("Please select a row on the table");
+      message.warning(t("selectRowValidation"));
     }
   };
 
@@ -259,12 +276,12 @@ export const AnalogSettings = () => {
         program_name
       );
       if (Object.keys(validationErrors).length > 0) {
-        message.error("Please input the correct values");
+        message.error(t("inputValidation"));
       } else {
         const transferedData = {
           ...editInput,
           key: editInput.key,
-          logo: `logos / ${editInput.program_name}`,
+          logo: editInput.program_name,
           program_name: editInput.program_name,
           active: activeDropdownValue,
           standart: standartDropdownValue,
@@ -278,18 +295,18 @@ export const AnalogSettings = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleApply = async () => {
     if (currentDevice.id && selectedRow.key) {
       const data = {
         device_id: currentDevice.id,
-        frequency: selectedRow.frerquency,
+        frequency: selectedRow.frequency,
         standart: selectedRow.standart,
       };
       await runScript(data);
     } else if (!currentDevice.id) {
-      message.error("Please select the deivce");
+      message.error(t("selectDeviceValidation"));
     } else {
-      message.error("Please select a row");
+      message.error(t("selectRowValidation"));
     }
   };
 
@@ -304,36 +321,44 @@ export const AnalogSettings = () => {
           <Dropdown
             options={devicesOptions}
             handleChange={handleDeviceChange}
-            placeholder="Devices"
-            value={currentDevice.id}
-          />
-        </Col>
-        <Col span={4}>
-          <Input
-            placeholder="Device Name"
-            value={currentDevice.name}
-            disabled
-            style={{ color: "black" }}
-          />
-        </Col>
-        <Col span={1}>
-          <Switch
-            style={{ padding: 10, marginRight: 20 }}
-            checked={
-              currentDevice.active && currentDevice.active === 1 ? true : false
+            placeholder={t("devices")}
+            value={
+              currentDevice.id
+                ? `${currentDevice.id} ${currentDevice.place}`
+                : t("selectDevice")
             }
           />
         </Col>
+        <Col
+          span={2}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            color={
+              currentDevice.active && currentDevice.active === 1
+                ? "primary"
+                : "danger"
+            }
+            variant="solid"
+          >
+            {t("active")}
+          </Button>
+        </Col>
         <Col span={1}>
           <Button
-            style={{ width: 20, height: 33, borderRadius: "50%" }}
             color={
               currentDevice.online && currentDevice.online === 1
                 ? "primary"
                 : "danger"
             }
             variant="solid"
-          />
+          >
+            Online
+          </Button>
         </Col>
       </Row>
       <div style={{ marginTop: 20, height: "70vh", overflowX: "hidden" }}>
@@ -343,6 +368,10 @@ export const AnalogSettings = () => {
               columns={columns}
               dataSource={dataSource}
               pagination={false}
+              scroll={{
+                x: 0,
+                y: 500,
+              }}
             />
           </Col>
           <Col span={8}>
@@ -353,7 +382,7 @@ export const AnalogSettings = () => {
                 justifyContent: "center",
               }}
             >
-              <VideoPlayer videoSrc="" />
+              <VideoPlayer videoSrc={videoSrc} />
             </div>
             <div style={{ padding: 10, marginTop: 30 }}>
               <Progress
@@ -381,7 +410,7 @@ export const AnalogSettings = () => {
                 onClick={handleEdit}
                 style={{ marginRight: 20 }}
               >
-                Edit
+                {t("edit")}
               </Button>
               <Button
                 icon={<SendOutlined />}
@@ -389,9 +418,9 @@ export const AnalogSettings = () => {
                 variant="solid"
                 color="primary"
                 style={{ marginLeft: 20 }}
-                onClick={handleSave}
+                onClick={handleApply}
               >
-                Save
+                {t("apply")}
               </Button>
             </div>
           </Col>
@@ -400,45 +429,50 @@ export const AnalogSettings = () => {
       <CustomModal
         open={open}
         handleCancel={() => setOpen(false)}
-        title="Analog Setting Edit"
+        title={t("analogSettingEdit")}
         confirmLoading={confirmLoading}
         handleOk={handleEditOk}
       >
         <div style={{ marginTop: 30 }}>
           <InputField
             name="frequency"
-            placeholder="Frequency"
+            placeholder={t("frequency")}
             value={editInput.frequency}
-            tooltip="Frequency must be a 6-digit string from 045000 to 850000."
+            tooltip={t("frequencyPlaceHolder")}
             onChange={handleEditChange}
           />
           <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 5 }}>
-              <label style={{ fontSize: "1em" }}>Standart</label>
+              <label style={{ fontSize: "1em" }}>{t("standart")}</label>
             </div>
             <Dropdown
               options={standartDropdownOptions}
-              placeholder="Standart"
+              placeholder={`${t("standart")}`}
               handleChange={handleStandartChange}
               value={standartDropdownValue}
             />
           </div>
           <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 5 }}>
-              <label style={{ fontSize: "1em" }}>Active</label>
+              <label style={{ fontSize: "1em" }}>{t("active")}</label>
             </div>
             <Dropdown
               options={activeDropdownOptions}
-              placeholder="Active"
+              placeholder={`${t("active")}`}
               handleChange={handleActiveChange}
               value={activeDropdownValue}
             />
           </div>
           <InputField
             name="program_name"
-            placeholder="Program name"
+            placeholder={`${t("programName")}`}
             value={editInput.program_name}
             onChange={handleEditChange}
+            isInvalid={
+              editInput.program_name === "" || !editInput.program_name
+                ? true
+                : false
+            }
           />
         </div>
       </CustomModal>
