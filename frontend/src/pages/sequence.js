@@ -12,8 +12,7 @@ import {
 } from "../lib/api";
 import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
-import { setSequence6 } from "../store/slices/sequence6Slice";
-import { Row, Col, Input, Button, Table, message, Radio } from "antd";
+import { Row, Col, Input, Button, Table, message } from "antd";
 import {
   RightOutlined,
   DeleteRowOutlined,
@@ -254,8 +253,6 @@ export const Sequence = () => {
       if (response.ok) {
         setCommandColumns(sequence6Columns);
         const { data } = response;
-        dispatch(setSequence6(data));
-
         const dataSource = data.map((dt) => ({
           key: dt.id,
           service_name: dt.service_name,
@@ -683,7 +680,14 @@ export const Sequence = () => {
             }
           />
         </Col>
-        <Col span={2}>
+        <Col
+          span={2}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.active && currentDevice.active === 1
@@ -695,7 +699,14 @@ export const Sequence = () => {
             {t("active")}
           </Button>
         </Col>
-        <Col span={1}>
+        <Col
+          span={1}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.online && currentDevice.online === 1

@@ -1,7 +1,13 @@
 import React from "react";
 import { Select } from "antd";
 
-export const Dropdown = ({ value, options, handleChange, placeholder }) => {
+export const Dropdown = ({
+  value,
+  options,
+  handleChange,
+  placeholder,
+  disabled,
+}) => {
   return (
     <Select
       defaultValue={placeholder}
@@ -12,6 +18,7 @@ export const Dropdown = ({ value, options, handleChange, placeholder }) => {
       onChange={handleChange}
       options={options}
       value={value}
+      disabled={disabled}
     />
   );
 };

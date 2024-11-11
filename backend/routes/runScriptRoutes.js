@@ -8,7 +8,7 @@ const {
 const router = express.Router();
 
 router.post("/iptv-settings", runIPTVSettings);
-router.get("/analog-settings", runAnalogSettings);
+router.post("/analog-settings", runAnalogSettings);
 router.post("/t2-settings", runT2Settings);
 router.post("/cable-settings", runCableSettings);
 

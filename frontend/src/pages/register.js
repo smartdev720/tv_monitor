@@ -83,7 +83,6 @@ export const UserRegister = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      debugger;
       const response = await register(input);
       if (response.ok) {
         message.success(t("registeredSuccessfully"));

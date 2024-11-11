@@ -6,3 +6,4 @@ export { CustomModal } from "./CustomModal";
 export { InputField } from "./InputField";
 export { ButtonGroup } from "./ButtonGroup";
 export { LanguageSwitcher } from "./LanguageSwitcher";
+export { ProtectedRoute } from "./ProtectedRoute";

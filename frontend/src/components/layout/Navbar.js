@@ -21,7 +21,9 @@ const { Header } = Layout;
 export const Navbar = () => {
   const { t } = useTranslation();
 
-  const navMenu = [
+  const [navMenu, setNavMenu] = useState([]);
+
+  const adminMenu = [
     { label: `${t("devices")}`, path: "/devices" },
     { label: `${t("analog")}`, path: "/analog-setting" },
     { label: "DVB-T2", path: "/dvb-t2-setting" },
@@ -31,6 +33,15 @@ export const Navbar = () => {
     { label: `${t("groups")}`, path: "/groups" },
     { label: `${t("schedules")}`, path: "/schedules" },
   ];
+
+  const userMenu = [
+    { label: "Main", path: "/main" },
+    { label: "Charts", path: "/charts" },
+    { label: "Table", path: "/table" },
+    { label: "Video", path: "/video" },
+    { label: "Video Compare", path: "/video-compare" },
+  ];
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -64,7 +75,10 @@ export const Navbar = () => {
   );
 
   useEffect(() => {
-    if (user) setUsername(`${user.nickName ? user.nickName : "NONE"}`);
+    if (user) {
+      setNavMenu(user.role === "admin" ? adminMenu : userMenu);
+      setUsername(`${user.nickName ? user.nickName : "NONE"}`);
+    }
   }, [user]);
 
   return (

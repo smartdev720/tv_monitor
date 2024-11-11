@@ -1,33 +1,54 @@
-import React from "react";
-import { Card } from "antd";
-import { useTranslation } from "react-i18next";
+import React, { useRef, useEffect } from "react";
+import videojs from "video.js";
+import "video.js/dist/video-js.css";
 
 export const VideoPlayer = ({ videoSrc }) => {
-  const { t } = useTranslation();
+  const videoRef = useRef(null);
+  const playerRef = useRef(null);
+
+  useEffect(() => {
+    if (!playerRef.current && videoSrc !== "") {
+      const videoElement = videoRef.current;
+      playerRef.current = videojs(videoElement, {
+        autoplay: true,
+        controls: true,
+        responsive: true,
+        fluid: true,
+        sources: [
+          {
+            src: videoSrc,
+            type: "application/x-mpegURL",
+          },
+        ],
+      });
+
+      playerRef.current.on("ready", () => {
+        console.log("Player is ready");
+      });
+    }
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [videoSrc]);
 
   return (
-    <Card
-      title={t("videoPlayer")}
-      style={{ width: 600, boxShadow: "1px 5px 2px 2px lightgray" }}
-    >
-      <div
-        style={{
-          position: "relative",
-          paddingTop: "56.25%" /* 16:9 Aspect Ratio */,
-        }}
-      >
-        {videoSrc ? (
-          <video controls style={{ width: "100%" }}>
-            <source
-              src={`http://localhost:5000/source/video${videoSrc}`}
-              type="video/mp4"
-            />
-            Your browser does not support the video tag.
-          </video>
-        ) : (
-          <p>Loading video...</p>
-        )}
-      </div>
-    </Card>
+    <>
+      {!videoSrc || videoSrc === "" ? (
+        <div className="">
+          <h4 className="" style={{ textAlign: "center", color: "green" }}>
+            If you want to watch a video, please select the setting and click
+            apply.
+          </h4>
+        </div>
+      ) : (
+        <div data-vjs-player>
+          <video ref={videoRef} className="video-js vjs-big-play-centered" />
+        </div>
+      )}
+    </>
   );
 };

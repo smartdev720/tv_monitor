@@ -69,3 +69,17 @@ export const getForamtedModulationFromDB = (input) => {
 export const formatDeviceId = (id) => {
   return id.toString().padStart(6, "0");
 };
+
+export const getDateWithISO = (date) => {
+  const localDate = new Date(date.$d);
+  localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+  const selectedDate = localDate.toISOString().split("T")[0];
+  return selectedDate;
+};
+
+export const getTime = (date) => {
+  const dateObj = new Date(date);
+  const day = dateObj.toISOString().split("T")[0];
+  const time = dateObj.toISOString().split("T")[1].split(".")[0];
+  return `${day} ${time}`;
+};

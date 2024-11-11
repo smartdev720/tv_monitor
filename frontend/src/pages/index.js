@@ -8,3 +8,6 @@ export { Devices } from "./devices";
 export { Schedules } from "./schedules";
 export { UserLogin } from "./userLogin";
 export { UserRegister } from "./register";
+export { Main } from "./main";
+export { TablePage } from "./table";
+export { Video } from "./video";

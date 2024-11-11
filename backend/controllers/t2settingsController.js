@@ -31,6 +31,19 @@ exports.getT2SettingsByDeviceId = async (req, res) => {
   }
 };
 
+exports.getOnlyT2SettingsByDeviceId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const select_t2settings = "SELECT * FROM t2_settings WHERE device_id = ? ;";
+    const settings = await queryAsync(select_t2settings, [id]);
+    console.log(settings);
+    return res.status(200).json({ ok: true, data: settings });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.updateT2Setting = async (req, res) => {
   try {
     const {

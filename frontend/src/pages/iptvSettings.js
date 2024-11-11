@@ -31,6 +31,7 @@ export const IPTVSettings = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [popLoading, setPopLoading] = useState(false);
   const [popOpen, setPopOpen] = useState(false);
+  const [videoSrc, setVideoSrc] = useState("");
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
@@ -123,6 +124,7 @@ export const IPTVSettings = () => {
       const response = await runIPTVSettings(params);
       if (response.ok) {
         message.success(t("runScriptSuccess"));
+        setVideoSrc(response.videoSrc);
       }
     } catch (err) {
     } finally {
@@ -149,6 +151,7 @@ export const IPTVSettings = () => {
   const columns = [
     {
       title: "",
+      width: 100,
       render: (_, record) => (
         <Radio
           checked={selectedRowKey === record.key}
@@ -266,7 +269,14 @@ export const IPTVSettings = () => {
             }
           />
         </Col>
-        <Col span={1}>
+        <Col
+          span={2}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.active && currentDevice.active === 1
@@ -278,7 +288,14 @@ export const IPTVSettings = () => {
             {t("active")}
           </Button>
         </Col>
-        <Col span={1}>
+        <Col
+          span={1}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.online && currentDevice.online === 1
@@ -305,17 +322,28 @@ export const IPTVSettings = () => {
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
-          <VideoPlayer />
-          <ButtonGroup
-            handleEditClick={handleEditClick}
-            popLoading={popLoading}
-            onDeleteClick={() => setPopOpen(true)}
-            open={popOpen}
-            // onDeleteConfirmClick={handleConfirmDeleteClick}
-            onCancel={() => setPopOpen(false)}
-            onSave={handleSave}
-            isDelete={true}
-          />
+          <VideoPlayer videoSrc={videoSrc} />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 20,
+              padding: 10,
+            }}
+          >
+            <ButtonGroup
+              handleEditClick={handleEditClick}
+              popLoading={popLoading}
+              onDeleteClick={() => setPopOpen(true)}
+              open={popOpen}
+              // onDeleteConfirmClick={handleConfirmDeleteClick}
+              onCancel={() => setPopOpen(false)}
+              onSave={handleSave}
+              isDelete={true}
+              isApply={true}
+            />
+          </div>
         </Col>
       </Row>
       <CustomModal

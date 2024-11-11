@@ -11,14 +11,8 @@ const devicesSlice = createSlice({
     setDevices(state, action) {
       state.devices = action.payload;
     },
-    clearDevices(state) {
-      state.devices = [];
-    },
-    pushDevices(state, action) {
-      state.devices = [...state.devices, action.payload];
-    },
   },
 });
 
-export const { setDevices, clearDevices, pushDevices } = devicesSlice.actions;
+export const { setDevices } = devicesSlice.actions;
 export default devicesSlice.reducer;

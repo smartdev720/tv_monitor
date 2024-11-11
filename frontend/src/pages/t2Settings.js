@@ -391,7 +391,14 @@ export const T2Settings = () => {
             }
           />
         </Col>
-        <Col span={2}>
+        <Col
+          span={2}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.active && currentDevice.active === 1
@@ -403,7 +410,14 @@ export const T2Settings = () => {
             {t("active")}
           </Button>
         </Col>
-        <Col span={1}>
+        <Col
+          span={1}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.online && currentDevice.online === 1

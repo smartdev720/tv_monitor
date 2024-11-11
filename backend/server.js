@@ -28,6 +28,18 @@ app.use(passport.initialize());
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.get("/video/:id", (req, res) => {
+  const videoId = req.params.id;
+  const videoPath = path.join(__dirname, "storage/media/9", `${videoId}.m3u8`);
+  res.sendFile(videoPath);
+});
+
+app.use(
+  "/storage/media/9",
+  express.static(path.join(__dirname, "storage/media/9"))
+);
+
 app.use(
   "/api/devices",
   passport.authenticate("jwt", { session: false }),
@@ -78,9 +90,10 @@ app.use(
   passport.authenticate("jwt", { session: false }),
   iptvSettingsRoutes
 );
+
 app.use(
   "/api/script-run",
-  // passport.authenticate("jwt", { session: false }),
+  passport.authenticate("jwt", { session: false }),
   runScriptRoutes
 );
 

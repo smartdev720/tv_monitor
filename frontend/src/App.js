@@ -12,8 +12,12 @@ import {
   Schedules,
   UserLogin,
   UserRegister,
+  // Main,
+  TablePage,
+  Video,
 } from "./pages";
 import { FloatButton } from "antd";
+import { ProtectedRoute } from "./components/common";
 
 function App() {
   const location = useLocation();
@@ -25,15 +29,45 @@ function App() {
       {!isLoginLocation && !isRegisterLocation && <Navbar />}
       <Routes>
         <Route path="/auth/login" element={<UserLogin />} />
-        <Route path="/auth/register" element={<UserRegister />} />
-        <Route path="/sequence" element={<Sequence />} />
-        <Route path="/analog-setting" element={<AnalogSettings />} />
-        <Route path="/groups" element={<Groups />} />
-        <Route path="/dvb-t2-setting" element={<T2Settings />} />
-        <Route path="/dvb-c-setting" element={<DVBCSettings />} />
-        <Route path="/iptv-setting" element={<IPTVSettings />} />
-        <Route path="/devices" element={<Devices />} />
-        <Route path="/schedules" element={<Schedules />} />
+        <Route
+          path="/auth/register"
+          element={<ProtectedRoute element={<UserRegister />} />}
+        />
+        <Route
+          path="/sequence"
+          element={<ProtectedRoute element={<Sequence />} />}
+        />
+        <Route
+          path="/analog-setting"
+          element={<ProtectedRoute element={<AnalogSettings />} />}
+        />
+        <Route
+          path="/groups"
+          element={<ProtectedRoute element={<Groups />} />}
+        />
+        <Route
+          path="/dvb-t2-setting"
+          element={<ProtectedRoute element={<T2Settings />} />}
+        />
+        <Route
+          path="/dvb-c-setting"
+          element={<ProtectedRoute element={<DVBCSettings />} />}
+        />
+        <Route
+          path="/iptv-setting"
+          element={<ProtectedRoute element={<IPTVSettings />} />}
+        />
+        <Route
+          path="/devices"
+          element={<ProtectedRoute element={<Devices />} />}
+        />
+        <Route
+          path="/schedules"
+          element={<ProtectedRoute element={<Schedules />} />}
+        />
+        {/* <Route path="/main" element={<Main />} /> */}
+        <Route path="/table" element={<TablePage />} />
+        <Route path="/video" element={<Video />} />
       </Routes>
       <FloatButton.BackTop />
     </>

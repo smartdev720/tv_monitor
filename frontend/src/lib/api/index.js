@@ -24,18 +24,26 @@ export {
 export { fetchAllChannels } from "./channels";
 export {
   fetchT2SettingsByDeviceId,
+  fetchOnlyT2SettingsByDeviceId,
   fetchT2PmtsBySettingId,
   updateSelectedT2Setting,
   deleteT2Setting,
 } from "./t2settings";
-export { updateT2PmtsUnderControlById } from "./t2pmts";
+export {
+  fetchT2PmtsBySettingIdBeforeDate,
+  updateT2PmtsUnderControlById,
+} from "./t2pmts";
 export {
   fetchCablePmtsBySettingId,
   fetchCableSettingsByDeviceId,
+  fetchOnlyCableSettingsByDeviceId,
   updateSelectedCableSetting,
   deleteCableSetting,
 } from "./cableSettings";
-export { updateCablePmtsUnderControlById } from "./cablePmts";
+export {
+  fetchCablePmtsBySettingIdBeforeDate,
+  updateCablePmtsUnderControlById,
+} from "./cablePmts";
 export {
   fetchIPTVSettingsByDeviceId,
   updateIPTVSetting,

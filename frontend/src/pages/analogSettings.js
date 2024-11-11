@@ -138,7 +138,9 @@ export const AnalogSettings = () => {
       const response = await runAnalogSettings(scriptParams);
       if (response.ok) {
         message.success("Run script successfully");
-        setVideoSrc("/9/1365.mp4");
+        setVideoSrc(response.videoSrc);
+      } else {
+        message.info("Video not found");
       }
     } catch (err) {
       message.error("Server error");
@@ -348,7 +350,14 @@ export const AnalogSettings = () => {
             {t("active")}
           </Button>
         </Col>
-        <Col span={1}>
+        <Col
+          span={1}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             color={
               currentDevice.online && currentDevice.online === 1
@@ -384,7 +393,7 @@ export const AnalogSettings = () => {
             >
               <VideoPlayer videoSrc={videoSrc} />
             </div>
-            <div style={{ padding: 10, marginTop: 30 }}>
+            {/* <div style={{ padding: 10, marginTop: 30 }}>
               <Progress
                 percent={pwrPercent}
                 percentPosition={{ align: "center", type: "inner" }}
@@ -392,7 +401,7 @@ export const AnalogSettings = () => {
                 strokeColor="#4db818"
                 style={{ color: "white" }}
               />
-            </div>
+            </div> */}
             <div
               style={{
                 display: "flex",

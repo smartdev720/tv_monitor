@@ -5,6 +5,13 @@ export const fetchT2SettingsByDeviceId = async (deviceId) => {
   return response.data;
 };
 
+export const fetchOnlyT2SettingsByDeviceId = async (deviceId) => {
+  const response = await axiosInstance.get(
+    `/t2settings/get/deviceId/${deviceId}`
+  );
+  return response.data;
+};
+
 export const fetchT2PmtsBySettingId = async (settingId) => {
   const response = await axiosInstance.get(`/t2pmts/settingId/${settingId}`);
   return response.data;

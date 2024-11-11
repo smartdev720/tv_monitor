@@ -3,10 +3,22 @@ const queryAsync = require("../config/queryAsync");
 exports.getCablepmtsBySettingId = async (req, res) => {
   try {
     const { id } = req.params;
-    const select_t2pmts =
-      "SELECT * FROM cable_pmts WHERE cable_setting_id = ? ;";
-    const t2pmts = await queryAsync(select_t2pmts, [id]);
-    return res.status(200).json({ ok: true, data: t2pmts });
+    const sql = "SELECT * FROM cable_pmts WHERE cable_setting_id = ? ;";
+    const pmts = await queryAsync(sql, [id]);
+    return res.status(200).json({ ok: true, data: pmts });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.getCablepmtsBySettingIdBeforeDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql =
+      "SELECT * FROM cable_pmts WHERE cable_setting_id = ? AND time <= STR_TO_DATE(?, '%Y-%m-%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND ORDER BY time DESC;";
+    const pmts = await queryAsync(sql, [id, date]);
+    return res.status(200).json({ ok: true, data: pmts });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });

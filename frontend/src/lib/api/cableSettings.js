@@ -7,6 +7,13 @@ export const fetchCableSettingsByDeviceId = async (deviceId) => {
   return response.data;
 };
 
+export const fetchOnlyCableSettingsByDeviceId = async (deviceId) => {
+  const response = await axiosInstance.get(
+    `/cableSettings/get/deviceId/${deviceId}`
+  );
+  return response.data;
+};
+
 export const fetchCablePmtsBySettingId = async (settingId) => {
   const response = await axiosInstance.get(`/cablePmts/settingId/${settingId}`);
   return response.data;
