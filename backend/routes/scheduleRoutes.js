@@ -1,5 +1,9 @@
 const express = require("express");
-const { getAll, insertOne, updateOne } = require("../controllers/schedule");
+const {
+  getAll,
+  insertOne,
+  updateOne,
+} = require("../controllers/scheduleController");
 const router = express.Router();
 
 router.get("/all", getAll);

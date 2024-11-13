@@ -12,7 +12,7 @@ import {
   Schedules,
   Login,
   UserRegister,
-  // Main,
+  Main,
   TablePage,
   Video,
   ChartPage,
@@ -68,7 +68,7 @@ function App() {
           path="/schedules"
           element={<ProtectedRoute element={<Schedules />} />}
         />
-        {/* <Route path="/main" element={<Main />} /> */}
+        <Route path="/main" element={<Main />} />
         <Route path="/table" element={<TablePage />} />
         <Route path="/video" element={<Video />} />
         <Route path="/chart" element={<ChartPage />} />

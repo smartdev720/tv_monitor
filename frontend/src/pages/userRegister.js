@@ -10,9 +10,9 @@ import { userRegister } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 
 export const UserRegister = () => {
+  const [selectionType, setSelectionType] = useState("checkbox");
   const [loading, setLoading] = useState(false);
-  const [selectedLocationRow, setSelectedLocationRow] = useState({});
-  const [selectedLocationRowKey, setSelectedLocationRowKey] = useState("");
+  const [selectedLocationRowKeys, setSelectedLocationRowKeys] = useState([]);
   const [locationDataSource, setLocationDataSource] = useState([]);
   const [userInput, setUserInput] = useState({});
   const [notifications, setNotifications] = useState({});
@@ -25,18 +25,9 @@ export const UserRegister = () => {
   // Location table columns
   const locationColumns = [
     {
-      title: ``,
-      width: 100,
-      render: (_, record) => (
-        <Radio
-          checked={selectedLocationRowKey === record.key}
-          onChange={() => handleLocationRowSelect(record.key, record)}
-        />
-      ),
-    },
-    {
       title: "Location ID",
       dataIndex: "locationId",
+      render: (text) => <a>{text}</a>,
     },
     {
       title: "Place",
@@ -46,9 +37,14 @@ export const UserRegister = () => {
   ///////////////////////////////////////////
 
   // Handle change
-  const handleLocationRowSelect = (key, record) => {
-    setSelectedLocationRowKey(key === selectedLocationRowKey ? null : key);
-    setSelectedLocationRow(record);
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedLocationRowKeys(selectedRowKeys);
+    },
+    getCheckboxProps: (record) => ({
+      disabled: record.name === "",
+      name: record.name,
+    }),
   };
 
   const handleUserInputChange = (e) =>
@@ -75,17 +71,21 @@ export const UserRegister = () => {
       setLoading(true);
       const data = {
         ...userInput,
-        locationId: selectedLocationRowKey,
+        locationIds: selectedLocationRowKeys,
       };
       const response = await userRegister(data);
       if (response.ok) {
         message.success(response.message);
         navigate("/auth/login");
+      } else {
+        message.success(response.message);
+        setSelectedLocationRowKeys([]);
       }
     } catch (err) {
       message.error("Something went wrong");
     } finally {
       setLoading(false);
+      setSelectedLocationRowKeys([]);
     }
   };
   ///////////////////////////////////////////
@@ -119,7 +119,7 @@ export const UserRegister = () => {
     if (!parsedPhoneNumber || !parsedPhoneNumber.isValid()) {
       return false;
     }
-    if (selectedLocationRowKey === "") {
+    if (selectedLocationRowKeys.length === 0) {
       return false;
     }
     return true;
@@ -155,14 +155,15 @@ export const UserRegister = () => {
         <Col span={6}>
           <h1 style={{ color: "white" }}>Possible locations</h1>
           <Table
+            rowSelection={{
+              type: selectionType,
+              ...rowSelection,
+            }}
             columns={locationColumns}
             dataSource={locationDataSource}
-            pagination={false}
-            scroll={{
-              x: 0,
-              y: 500,
-            }}
             style={{ marginTop: 30 }}
+            pagination={false}
+            scroll={{ y: 500 }}
           />
         </Col>
         <Col span={2}></Col>

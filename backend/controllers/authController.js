@@ -13,7 +13,7 @@ exports.userRegister = async (req, res) => {
       telegram,
       viber,
       password,
-      locationId,
+      locationIds,
     } = req.body;
     let sql = "SELECT * FROM users WHERE email = ? ;";
     const existUser = await queryAsync(sql, [email]);
@@ -43,13 +43,13 @@ exports.userRegister = async (req, res) => {
 
     sql = "SELECT id FROM users WHERE email = ? ;";
     const user = await queryAsync(sql, [email]);
-    console.log(user);
     sql =
       "INSERT INTO locations_for_users (user_id, location_id) VALUES (?, ?) ;";
-    const tResult = await queryAsync(sql, [user[0].id, locationId]);
-    if (!tResult) {
-      return res.status(500).json({ ok: false, message: "Server error" });
-    }
+    await Promise.all(
+      locationIds.map(async (locationId) => {
+        await queryAsync(sql, [user[0].id, locationId]);
+      })
+    );
     return res
       .status(200)
       .json({ ok: true, message: "Registered successfully" });
