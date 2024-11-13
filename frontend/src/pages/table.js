@@ -23,18 +23,18 @@ export const TablePage = () => {
   const {
     getAllDevices,
     getPmtsBySettingIdBeforeDate,
-    getSettingsAndFillSettingIdDropdown,
+    getSettingsAndFillSettingId,
     loading,
   } = useGlobal();
 
   // Table Columns
   const columns = [
     {
-      title: "Name",
+      title: `${t("name")}`,
       dataIndex: "service_name",
     },
     {
-      title: "Time",
+      title: `${t("time")}`,
       dataIndex: "time",
     },
   ];
@@ -74,7 +74,7 @@ export const TablePage = () => {
     );
     setCurrentDevice(selectedDevice);
     if (tvTypeDropdownValue !== "") {
-      const data = await getSettingsAndFillSettingIdDropdown(
+      const data = await getSettingsAndFillSettingId(
         tvTypeDropdownValue,
         selectedDevice.id
       );
@@ -95,10 +95,7 @@ export const TablePage = () => {
   const handleTvDropdownChange = async (value) => {
     setTvTypeDropdownValue(value);
     if (currentDevice.id) {
-      const data = await getSettingsAndFillSettingIdDropdown(
-        value,
-        currentDevice.id
-      );
+      const data = await getSettingsAndFillSettingId(value, currentDevice.id);
       if (data) {
         const options = data
           .filter((dt) => dt.active === 1)
@@ -134,7 +131,8 @@ export const TablePage = () => {
     if (
       settingIdDropdownValue !== "" &&
       currentDevice.id &&
-      tvTypeDropdownValue !== ""
+      tvTypeDropdownValue !== "" &&
+      date
     ) {
       const formattedDate = getDateWithISO(date);
       const data = await getPmtsBySettingIdBeforeDate(
@@ -202,7 +200,9 @@ export const TablePage = () => {
       </Row>
       <Row gutter={16}>
         <div style={{ width: "100%", marginTop: 20 }}>
-          <h3 style={{ color: "green", marginBottom: 10, textAlign: "center" }}>
+          <h3
+            style={{ color: "#1668dc", marginBottom: 10, textAlign: "center" }}
+          >
             {groupedData[currentPage - 1]?.date || ""}
           </h3>
           <Table

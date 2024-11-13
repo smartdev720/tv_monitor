@@ -3,10 +3,9 @@ const queryAsync = require("../config/queryAsync");
 exports.runIPTVSettings = async (req, res) => {
   try {
     const scriptParams = req.body;
-    console.log(scriptParams);
     return res
       .status(200)
-      .json({ ok: true, videoSrc: "http://localhost:5000/video/1365" });
+      .json({ ok: true, videoSrc: "http://localhost:5000/video/9/1365" });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });

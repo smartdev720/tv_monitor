@@ -7,11 +7,12 @@ export const Spinner = () => {
     <Flex gap="middle" vertical>
       <Spin size="large">
         <h3
+          className="spinner"
           style={{
-            color: "#4db818",
             fontSize: "1.2em",
             textAlign: "center",
             marginTop: 180,
+            color: "#181818",
           }}
         >
           {t("pleaseWait")}

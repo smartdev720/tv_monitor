@@ -721,7 +721,7 @@ export const Sequence = () => {
       </Row>
       <Row gutter={16} style={{ marginTop: 20 }}>
         <Col span={10}>
-          <h1 style={{ marginBottom: 20 }}>{t("commands")}</h1>
+          <h1 style={{ marginBottom: 20, color: "white" }}>{t("commands")}</h1>
           <Tab
             items={tabItems}
             onChange={handleTabChange}
@@ -757,7 +757,7 @@ export const Sequence = () => {
           </Button>
         </Col>
         <Col span={10}>
-          <h1 style={{ marginBottom: 130 }}>{t("sequence")}</h1>
+          <h1 style={{ marginBottom: 130, color: "white" }}>{t("sequence")}</h1>
           <Table
             rowSelection={{
               type: "radio",

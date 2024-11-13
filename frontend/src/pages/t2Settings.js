@@ -432,7 +432,7 @@ export const T2Settings = () => {
       </Row>
       <Row gutter={16} style={{ marginTop: 30 }}>
         <Col span={15}>
-          <h1>DVB-T2 {t("settings")}</h1>
+          <h1 style={{ color: "white" }}>DVB-T2 {t("settings")}</h1>
           <Table
             columns={settingColumn}
             dataSource={settingDataSource}
@@ -445,7 +445,7 @@ export const T2Settings = () => {
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
-          <h1>{t("programsInTheMultiplex")}</h1>
+          <h1 style={{ color: "white" }}>{t("programsInTheMultiplex")}</h1>
           <Table
             columns={pmtColumn}
             dataSource={pmtDataSource}

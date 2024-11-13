@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getAllByDeviceId,
+  getVideoListByIdAndDate,
   updateOne,
   removeOne,
 } = require("../controllers/iptvSettingsController");
@@ -8,6 +9,7 @@ const router = express.Router();
 
 router.get("/deviceId/:id", getAllByDeviceId);
 router.patch("/update-one", updateOne);
+router.post("/get/video", getVideoListByIdAndDate);
 router.delete("/delete-one/:id", removeOne);
 
 module.exports = router;

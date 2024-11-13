@@ -12,6 +12,11 @@ export const fetchOnlyT2SettingsByDeviceId = async (deviceId) => {
   return response.data;
 };
 
+export const fetchT2ChartDataByIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/t2settings/get/chart", data);
+  return response.data;
+};
+
 export const fetchT2PmtsBySettingId = async (settingId) => {
   const response = await axiosInstance.get(`/t2pmts/settingId/${settingId}`);
   return response.data;

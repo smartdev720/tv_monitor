@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import PhoneInput from "antd-phone-input";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
-export const UserRegister = () => {
+export const AdminRegister = () => {
   const [input, setInput] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);

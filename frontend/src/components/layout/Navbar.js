@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Breadcrumb,
-  Button,
-  Dropdown,
-  Layout,
-  Menu,
-  message,
-  theme,
-} from "antd";
+import { Button, Dropdown, Layout, Menu, message, theme } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
@@ -35,11 +27,11 @@ export const Navbar = () => {
   ];
 
   const userMenu = [
-    { label: "Main", path: "/main" },
-    { label: "Charts", path: "/charts" },
-    { label: "Table", path: "/table" },
-    { label: "Video", path: "/video" },
-    { label: "Video Compare", path: "/video-compare" },
+    { label: `${t("main")}`, path: "/main" },
+    { label: `${t("chart")}`, path: "/chart" },
+    { label: `${t("table")}`, path: "/table" },
+    { label: `${t("video")}`, path: "/video" },
+    { label: `${t("compare")}`, path: "/compare" },
   ];
 
   const {
@@ -77,7 +69,7 @@ export const Navbar = () => {
   useEffect(() => {
     if (user) {
       setNavMenu(user.role === "admin" ? adminMenu : userMenu);
-      setUsername(`${user.nickName ? user.nickName : "NONE"}`);
+      setUsername(`${user.name2 ? user.name2 : "NONE"}`);
     }
   }, [user]);
 
@@ -89,6 +81,7 @@ export const Navbar = () => {
           alignItems: "center",
           justifyContent: "space-between",
           height: 64,
+          backgroundColor: "#000000",
         }}
       >
         <div
@@ -110,11 +103,14 @@ export const Navbar = () => {
               flex: 1,
               minWidth: 0,
               marginLeft: 20,
+              backgroundColor: "#000000",
             }}
           >
             {navMenu.map((item, index) => (
-              <Menu.Item key={index}>
-                <Link to={item.path}>{item.label}</Link>
+              <Menu.Item key={index} style={{ color: "white" }}>
+                <Link to={item.path} style={{ color: "white" }}>
+                  {item.label}
+                </Link>
               </Menu.Item>
             ))}
           </Menu>
@@ -152,18 +148,6 @@ export const Navbar = () => {
           </Dropdown>
         </div>
       </Header>
-      <Breadcrumb
-        style={{
-          margin: "16px 0",
-          padding: 20,
-          fontWeight: "bold",
-        }}
-      >
-        <Breadcrumb.Item>Home</Breadcrumb.Item>
-        <Breadcrumb.Item>
-          {navMenu[selectedKey]?.label || "Home"}
-        </Breadcrumb.Item>
-      </Breadcrumb>
     </Layout>
   );
 };

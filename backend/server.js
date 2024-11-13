@@ -19,6 +19,8 @@ const runScriptRoutes = require("./routes/runScriptRoutes");
 require("dotenv").config();
 require("./config/passport")(passport);
 const path = require("path");
+const fs = require("fs");
+const { getAllDevices } = require("./controllers/deviceController");
 
 const app = express();
 
@@ -29,16 +31,50 @@ app.use(passport.initialize());
 // Routes
 app.use("/api/auth", authRoutes);
 
-app.get("/video/:id", (req, res) => {
-  const videoId = req.params.id;
-  const videoPath = path.join(__dirname, "storage/media/9", `${videoId}.m3u8`);
+app.use("/compare", express.static(path.join(__dirname, "storage/media/99")));
+app.get("/video/:folderName/:id", (req, res) => {
+  const { folderName, id } = req.params;
+  const videoPath = path.join(
+    __dirname,
+    "storage",
+    "media",
+    folderName,
+    `${id}.m3u8`
+  );
+
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).json({ message: "Video not found" });
+  }
+
   res.sendFile(videoPath);
+});
+
+app.get("/api/files/:cnt/:device_id", (req, res) => {
+  const { cnt, device_id } = req.params;
+  const directoryPath = path.join(
+    __dirname,
+    "storage",
+    "media",
+    "99",
+    cnt,
+    device_id
+  );
+  console.log(directoryPath);
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      console.error("Error reading directory:", err);
+      return res.status(500).json({ error: "Unable to read directory" });
+    }
+    res.json({ ok: true, data: files });
+  });
 });
 
 app.use(
   "/storage/media/9",
   express.static(path.join(__dirname, "storage/media/9"))
 );
+
+app.get("/api/devices/all", getAllDevices);
 
 app.use(
   "/api/devices",

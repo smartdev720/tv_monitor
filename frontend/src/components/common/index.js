@@ -7,3 +7,5 @@ export { InputField } from "./InputField";
 export { ButtonGroup } from "./ButtonGroup";
 export { LanguageSwitcher } from "./LanguageSwitcher";
 export { ProtectedRoute } from "./ProtectedRoute";
+export { Chart } from "./Chart";
+export { CompareFrame } from "./CompareFrame";

@@ -3,17 +3,17 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+  background: #1a1a1a;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4db818;
+  background: #525252;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4db818;
+  background: #525252;
 }
 
 .ant-progress-text {
@@ -37,9 +37,11 @@
 
 /* Styling for the translate dropdown */
 #google_translate_element {
-  display: none;  /* Hidden initially */
+  display: none;
+  /* Hidden initially */
   position: absolute;
-  top: 50px;  /* Position below the button */
+  top: 50px;
+  /* Position below the button */
   right: 0;
   z-index: 1000;
   background-color: white;
@@ -58,6 +60,11 @@
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+
+.spinner {
+  background-color: black !important;
+}
+
 /* 
 .VIpgJd-ZVi9od-ORHb {
   display: none !important;

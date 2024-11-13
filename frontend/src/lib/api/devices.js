@@ -1,7 +1,8 @@
 import axiosInstance from "../axiosInstance";
+import axios from "axios";
 
 export const fetchAllDevices = async () => {
-  const response = await axiosInstance.get("/devices/all");
+  const response = await axios.get("http://localhost:5000/api/devices/all");
   return response.data;
 };
 

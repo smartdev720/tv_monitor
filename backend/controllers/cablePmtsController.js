@@ -25,6 +25,18 @@ exports.getCablepmtsBySettingIdBeforeDate = async (req, res) => {
   }
 };
 
+exports.getCableVideoListByIdAndDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql = "SELECT * FROM Dat_3 WHERE pmts_id = ? AND DATE(time_dat) = ?;";
+    const videos = await queryAsync(sql, [id, date]);
+    return res.status(200).json({ ok: true, data: videos });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.updateUnderControlById = async (req, res) => {
   try {
     const { key, under_control } = req.body;

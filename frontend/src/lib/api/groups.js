@@ -15,6 +15,21 @@ export const fetchChannelNameByGroupId = async (id) => {
   return response.data;
 };
 
+export const fetchDat99ByGroupIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/groups/get/dat99", data);
+  return response.data;
+};
+
+export const fetchDat99ResByCnt = async (cnt) => {
+  const response = await axiosInstance.get(`/groups/get/dat99-res/${cnt}`);
+  return response.data;
+};
+
+export const getFileNamesFromBackend = async (cnt, deviceId) => {
+  const response = await axiosInstance.get(`/files/${cnt}/${deviceId}`);
+  return response.data;
+};
+
 export const addNewGroup = async (newGroup) => {
   const response = await axiosInstance.post("/groups/add-new", newGroup);
   return response.data;

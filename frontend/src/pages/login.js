@@ -8,7 +8,7 @@ import { setAuthToken } from "../lib/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-export const UserLogin = () => {
+export const Login = () => {
   const [input, setInput] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -36,6 +36,7 @@ export const UserLogin = () => {
     try {
       setLoading(true);
       const response = await login(input);
+      debugger;
       if (response.ok) {
         const { token } = response;
         localStorage.setItem("tv_monitor_token", token);
@@ -77,7 +78,7 @@ export const UserLogin = () => {
             padding: 30,
             boxShadow: "0px 4px 5px 2px",
             borderRadius: 20,
-            backgroundColor: "white",
+            backgroundColor: "black",
           }}
         >
           <InputField
@@ -98,7 +99,7 @@ export const UserLogin = () => {
           />
           <div style={{ marginTop: 20 }}>
             <div>
-              <span>{t("alreadyLoggined")}</span>
+              <span style={{ color: "white" }}>{t("alreadyLoggined")}</span>
               <Button type="link" style={{ padding: 0, marginLeft: 10 }}>
                 <Link to="/auth/register">{t("here")}</Link>
               </Button>

@@ -5,6 +5,11 @@ export const fetchT2PmtsBySettingIdBeforeDate = async (data) => {
   return response.data;
 };
 
+export const fetchT2VideoListByIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/t2pmts/get/video", data);
+  return response.data;
+};
+
 export const updateT2PmtsUnderControlById = async (data) => {
   const response = await axiosInstance.patch(
     "/t2pmts/update-under-control",

@@ -1,14 +1,39 @@
 import React, { useRef, useEffect } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
+import { useTranslation } from "react-i18next";
 
-export const VideoPlayer = ({ videoSrc }) => {
+export const VideoPlayer = ({ videoSrc, setIsVideoError, setLoading }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
+  const prevVideoSrc = useRef(videoSrc);
+
+  const { t } = useTranslation();
 
   useEffect(() => {
-    if (!playerRef.current && videoSrc !== "") {
-      const videoElement = videoRef.current;
+    if (!videoSrc || videoSrc === "" || videoSrc === prevVideoSrc) {
+      return;
+    }
+
+    setLoading(true);
+    const videoElement = videoRef.current;
+    if (!videoElement) {
+      return;
+    }
+
+    fetch(videoSrc)
+      .then((response) => {
+        if (!response.ok) {
+          setIsVideoError(true);
+          setLoading(false);
+          throw new Error("Video not found");
+        }
+        setLoading(false);
+        return response.blob();
+      })
+      .catch((err) => {});
+
+    if (videoSrc && videoElement) {
       playerRef.current = videojs(videoElement, {
         autoplay: true,
         controls: true,
@@ -38,10 +63,17 @@ export const VideoPlayer = ({ videoSrc }) => {
   return (
     <>
       {!videoSrc || videoSrc === "" ? (
-        <div className="">
-          <h4 className="" style={{ textAlign: "center", color: "green" }}>
-            If you want to watch a video, please select the setting and click
-            apply.
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 100,
+          }}
+        >
+          <h4 style={{ textAlign: "center", color: "white" }}>
+            {t("videoError")}
           </h4>
         </div>
       ) : (

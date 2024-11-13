@@ -14,6 +14,16 @@ export const fetchOnlyCableSettingsByDeviceId = async (deviceId) => {
   return response.data;
 };
 
+export const fetchCableVideoListByIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/cableSettings/get/video", data);
+  return response.data;
+};
+
+export const fetchCableChartDataByIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/cableSettings/get/chart", data);
+  return response.data;
+};
+
 export const fetchCablePmtsBySettingId = async (settingId) => {
   const response = await axiosInstance.get(`/cablePmts/settingId/${settingId}`);
   return response.data;

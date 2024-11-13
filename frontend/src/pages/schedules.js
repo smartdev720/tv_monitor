@@ -537,7 +537,7 @@ export const Schedules = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={5}>
-          <h1>{t("listOfSchedules")}</h1>
+          <h1 style={{ color: "white" }}>{t("listOfSchedules")}</h1>
           <Table
             columns={scheduleColumns}
             dataSource={scheduleDataSource}
@@ -573,7 +573,7 @@ export const Schedules = () => {
               onChange={handleTypeDropdownChange}
             />
           </div>
-          <h1>{t("listOfGroups")}</h1>
+          <h1 style={{ color: "white" }}>{t("listOfGroups")}</h1>
           <Table
             columns={groupColumns}
             dataSource={groupDataSource}
@@ -586,7 +586,7 @@ export const Schedules = () => {
         </Col>
         <Col span={1}></Col>
         <Col span={8}>
-          <h1>{t("editSchedules")}</h1>
+          <h1 style={{ color: "white" }}>{t("editSchedules")}</h1>
           <Table
             columns={editColumns}
             dataSource={editDataSource}

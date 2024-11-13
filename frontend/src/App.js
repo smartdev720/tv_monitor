@@ -10,11 +10,13 @@ import {
   IPTVSettings,
   Devices,
   Schedules,
-  UserLogin,
+  Login,
   UserRegister,
   // Main,
   TablePage,
   Video,
+  ChartPage,
+  Compare,
 } from "./pages";
 import { FloatButton } from "antd";
 import { ProtectedRoute } from "./components/common";
@@ -22,17 +24,18 @@ import { ProtectedRoute } from "./components/common";
 function App() {
   const location = useLocation();
   const isLoginLocation = location.pathname === "/auth/login";
-  const isRegisterLocation = location.pathname === "/auth/register";
+  const isUserRegisterLocation = location.pathname === "/auth/register";
 
   return (
     <>
-      {!isLoginLocation && !isRegisterLocation && <Navbar />}
+      {!isLoginLocation && !isUserRegisterLocation && <Navbar />}
       <Routes>
-        <Route path="/auth/login" element={<UserLogin />} />
-        <Route
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/register" element={<UserRegister />} />
+        {/* <Route
           path="/auth/register"
           element={<ProtectedRoute element={<UserRegister />} />}
-        />
+        /> */}
         <Route
           path="/sequence"
           element={<ProtectedRoute element={<Sequence />} />}
@@ -68,6 +71,8 @@ function App() {
         {/* <Route path="/main" element={<Main />} /> */}
         <Route path="/table" element={<TablePage />} />
         <Route path="/video" element={<Video />} />
+        <Route path="/chart" element={<ChartPage />} />
+        <Route path="/compare" element={<Compare />} />
       </Routes>
       <FloatButton.BackTop />
     </>

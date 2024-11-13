@@ -36,11 +36,23 @@ exports.getOnlyT2SettingsByDeviceId = async (req, res) => {
     const { id } = req.params;
     const select_t2settings = "SELECT * FROM t2_settings WHERE device_id = ? ;";
     const settings = await queryAsync(select_t2settings, [id]);
-    console.log(settings);
     return res.status(200).json({ ok: true, data: settings });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.getChartDataByIdAndDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql =
+      "SELECT * FROM Dat_4 WHERE settings_id = ? AND DATE(time_dat) = ?;";
+    const charts = await queryAsync(sql, [id, date]);
+    return res.status(200).json({ ok: true, data: charts });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ ok: false, message: "Server error" });
   }
 };
 

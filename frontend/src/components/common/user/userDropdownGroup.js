@@ -16,6 +16,7 @@ export const UserDropdownGroup = ({
   handleSettingIdDropdownChange,
   disabled,
   required,
+  iptvMissed,
 }) => {
   const { t } = useTranslation();
 
@@ -33,12 +34,22 @@ export const UserDropdownGroup = ({
     { value: "cable_settings", label: "DVB-C" },
   ];
 
+  const missedIptvTypeDropdown = [
+    { value: "analog_settings", label: "Analog" },
+    { value: "t2_settings", label: "DVB-T2" },
+    { value: "cable_settings", label: "DVB-C" },
+  ];
+
   useEffect(() => {
     if (required) {
       setTvTypeDropdown(requiredTvTypeDropdown);
-    } else {
-      setTvTypeDropdown(normalTvTypeDropdown);
+      return;
     }
+    if (iptvMissed) {
+      setTvTypeDropdown(missedIptvTypeDropdown);
+      return;
+    }
+    setTvTypeDropdown(normalTvTypeDropdown);
   }, [required]);
 
   return (
@@ -59,7 +70,7 @@ export const UserDropdownGroup = ({
           options={tvTypeDropdown}
           handleChange={handleTvDropdownChange}
           value={
-            tvTypeDropdownValue !== "" ? tvTypeDropdownValue : "Select TV type"
+            tvTypeDropdownValue !== "" ? tvTypeDropdownValue : t("selectTvType")
           }
         />
       </Col>
@@ -70,7 +81,7 @@ export const UserDropdownGroup = ({
           value={
             settingIdDropdownValue !== ""
               ? settingIdDropdownValue
-              : "Select setting name"
+              : t("selectSettingName")
           }
           disabled={disabled}
         />

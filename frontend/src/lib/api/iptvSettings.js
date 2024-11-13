@@ -7,6 +7,11 @@ export const fetchIPTVSettingsByDeviceId = async (deviceId) => {
   return response.data;
 };
 
+export const fetchIPTVVideoListByIdAndDate = async (data) => {
+  const response = await axiosInstance.post("/iptv-settings/get/video", data);
+  return response.data;
+};
+
 export const updateIPTVSetting = async (data) => {
   const response = await axiosInstance.patch("/iptv-settings/update-one", data);
   return response.data;

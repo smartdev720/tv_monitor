@@ -14,7 +14,7 @@ export const InputField = ({
   return (
     <div style={{ marginTop: 20 }}>
       <div style={{ marginBottom: 5 }}>
-        <label style={{ fontSize: "1em" }}>{placeholder}</label>
+        <label style={{ fontSize: "1em", color: "white" }}>{placeholder}</label>
       </div>
       <Input
         name={name}

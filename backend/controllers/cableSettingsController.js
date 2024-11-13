@@ -45,6 +45,19 @@ exports.getOnlySettingsByDeviceId = async (req, res) => {
   }
 };
 
+exports.getChartDataByIdAndDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql =
+      "SELECT * FROM Dat_1 WHERE settings_id = ?  AND DATE(time_dat) = ?;";
+    const charts = await queryAsync(sql, [id, date]);
+    return res.status(200).json({ ok: true, data: charts });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.updateCableSetting = async (req, res) => {
   try {
     const {

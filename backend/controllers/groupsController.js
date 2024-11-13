@@ -127,6 +127,34 @@ exports.getSelectedCommands = async (req, res) => {
   }
 };
 
+exports.getDat99ByGroupIdAndDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql =
+      "SELECT * FROM Dat_99 WHERE group_id = ? AND DATE(time_dat) = ?;";
+    const dat99 = await queryAsync(sql, [id, date]);
+    if (typeof dat99 === "object") {
+      return res.status(200).json({ ok: true, data: [...dat99] });
+    }
+    return res.status(200).json({ ok: true, data: dat99 });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
+exports.getDat99ResByCnt = async (req, res) => {
+  try {
+    const { cnt } = req.params;
+    const sql = "SELECT * FROM Dat_99_res WHERE cnt = ?;";
+    const dat99Res = await queryAsync(sql, [cnt]);
+    return res.status(200).json({ ok: true, data: dat99Res });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.addNewOne = async (req, res) => {
   try {
     const { name, channel_id, model_id } = req.body;

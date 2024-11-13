@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const convertTVType = (value) => {
   switch (value) {
     case "3":
@@ -77,9 +79,52 @@ export const getDateWithISO = (date) => {
   return selectedDate;
 };
 
+export const getPrevday = (date) => {
+  const localDate = moment(date.$d || date);
+  if (!localDate.isValid()) {
+    console.error("Invalid date provided");
+    return null;
+  }
+  localDate.subtract(1, "days");
+  return localDate.format("YYYY-MM-DD");
+};
+
+export const getNextday = (date) => {
+  const localDate = moment(date.$d || date);
+  if (!localDate.isValid()) {
+    console.error("Invalid date provided");
+    return null;
+  }
+  localDate.add(1, "days");
+  return localDate.format("YYYY-MM-DD");
+};
+
 export const getTime = (date) => {
   const dateObj = new Date(date);
   const day = dateObj.toISOString().split("T")[0];
   const time = dateObj.toISOString().split("T")[1].split(".")[0];
   return `${day} ${time}`;
+};
+
+export const parseTime = (timeStr) => {
+  const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+export const formatTime = (totalSeconds) => {
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+    2,
+    "0"
+  );
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+};
+
+export const formatDelay = (delay) => {
+  const seconds = Math.abs(delay / 25);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = (seconds % 60).toFixed(2);
+  const sign = delay >= 0 ? "+" : "-";
+  return `${sign}${minutes}:${String(remainingSeconds).padStart(5, "0")}`;
 };

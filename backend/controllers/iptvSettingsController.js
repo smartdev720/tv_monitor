@@ -13,6 +13,19 @@ exports.getAllByDeviceId = async (req, res) => {
   }
 };
 
+exports.getVideoListByIdAndDate = async (req, res) => {
+  try {
+    const { id, date } = req.body;
+    const sql =
+      "SELECT * FROM Dat_7 WHERE settings_id = ? AND DATE(time_dat) = ?;";
+    const videos = await queryAsync(sql, [id, date]);
+    return res.status(200).json({ ok: true, data: videos });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.updateOne = async (req, res) => {
   try {
     const { key, name, url, active } = req.body;

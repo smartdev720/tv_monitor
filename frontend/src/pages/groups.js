@@ -466,7 +466,9 @@ export const Groups = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={6}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>{t("group")}</h1>
+          <h1 style={{ marginTop: 0, marginBottom: 10, color: "white" }}>
+            {t("group")}
+          </h1>
           <Table
             columns={groupsColumn}
             dataSource={groupsDataSource}
@@ -507,7 +509,7 @@ export const Groups = () => {
               />
             </div>
             <div>
-              <h1>{t("commands")}</h1>
+              <h1 style={{ color: "white" }}>{t("commands")}</h1>
               <Table
                 columns={commandsColumn}
                 dataSource={commandsDataSource}
@@ -542,7 +544,9 @@ export const Groups = () => {
           </div>
         </Col>
         <Col span={8}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>{t("group")}</h1>
+          <h1 style={{ marginTop: 0, marginBottom: 10, color: "white" }}>
+            {t("group")}
+          </h1>
           <div
             style={{
               display: "flex",

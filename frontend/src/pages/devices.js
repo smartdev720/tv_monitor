@@ -141,7 +141,7 @@ export const Devices = () => {
     <div style={{ padding: 20 }}>
       <Row gutter={16}>
         <Col span={12}>
-          <h1>{t("devices")}</h1>
+          <h1 style={{ color: "white" }}>{t("devices")}</h1>
           <Table
             columns={columns}
             dataSource={dataSource}
@@ -168,13 +168,12 @@ export const Devices = () => {
             value={editInput.place}
             onChange={handleEditChange}
             disabled={disabled}
-            isInvalid={
-              !editInput.place || editInput.place === "" ? true : false
-            }
           />
           <div style={{ marginTop: 20 }}>
             <div style={{ marginBottom: 5 }}>
-              <label style={{ fontSize: "1em" }}>{t("active")}</label>
+              <label style={{ fontSize: "1em", color: "white" }}>
+                {t("active")}
+              </label>
             </div>
             <div
               style={{

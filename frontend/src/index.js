@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ConfigProvider } from "antd";
+import { theme } from "antd";
 import { BrowserRouter as Router } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store/store";
@@ -22,8 +23,10 @@ root.render(
     <Provider store={store}>
       <ConfigProvider
         theme={{
+          algorithm: theme.darkAlgorithm,
           token: {
-            colorPrimary: "#4db818",
+            colorBgBase: "#161616",
+            colorTextBase: "#FFFFFF",
           },
         }}
       >
