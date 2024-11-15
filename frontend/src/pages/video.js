@@ -24,8 +24,12 @@ export const Video = () => {
   const [isVideoError, setIsVideoError] = useState(false);
 
   const { devices } = useSelector((state) => state.devices);
+  const { user } = useSelector((state) => state.user);
+  const { selectedGlobalData } = useSelector(
+    (state) => state.selectedGlobalData
+  );
   const {
-    getAllDevices,
+    getDevicesById,
     getSettingsAndFillSettingId,
     getVideoListByIdAndDate,
     getPmtsBySettingId,
@@ -322,8 +326,64 @@ export const Video = () => {
   }, [devices]);
 
   useEffect(() => {
-    getAllDevices();
-  }, [getAllDevices]);
+    const fetchAllSettings = async () => {
+      if (user.id) {
+        await getDevicesById(user.locations);
+      }
+    };
+    fetchAllSettings();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchSetting = async () => {
+      const { location, tvType, date } = selectedGlobalData;
+      if (location && tvType) {
+        const selectedId = selectedGlobalData.split(" ")[0];
+        const data = await getSettingsAndFillSettingId(
+          tvType,
+          Number(selectedId)
+        );
+        if (data) {
+          if (tvType === "analog_settings" || tvType === "iptv_settings") {
+            const dataSource = data
+              .filter((dt) => dt.active === 1)
+              .map((dt) => ({
+                key: dt.id,
+                logo: tvType === "analog_settings" ? dt.program_name : dt.name,
+                name: tvType === "analog_settings" ? dt.program_name : dt.name,
+              }));
+            setSettingIdDropdownValue("");
+            setSettingIdDropdown([]);
+            setSettingDataSource(dataSource);
+            setVideoListDataSource([]);
+            setSelectedSettingKey("");
+            setSelectedSettingRow({});
+            setSelectedVideoListKey("");
+            setSelectedVideoListRow({});
+            setVideoSrc("");
+          } else {
+            const options = data
+              .filter((dt) => dt.active === 1)
+              .map((dt) => ({
+                value: dt.id,
+                label: dt.name,
+              }));
+            setSettingIdDropdownValue("");
+            setSettingIdDropdown(options);
+            setSettingDataSource([]);
+            setVideoListDataSource([]);
+            setSelectedSettingKey("");
+            setSelectedSettingRow({});
+            setSelectedVideoListKey("");
+            setSelectedVideoListRow({});
+            setVideoSrc("");
+          }
+        }
+        setDate(date);
+      }
+    };
+    fetchSetting();
+  }, [selectedGlobalData]);
 
   if (loading) {
     return <Spinner />;

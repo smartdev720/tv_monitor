@@ -17,5 +17,6 @@ router.get("/get/dat99-res/:cnt", getDat99ResByCnt);
 router.post("/add-new", addNewOne);
 router.delete("/delete-one/:id", removeOne);
 router.patch("/update-commandList", updateCommandList);
+router.patch("/update/ext");
 
 module.exports = router;

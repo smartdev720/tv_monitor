@@ -9,3 +9,5 @@ export { LanguageSwitcher } from "./LanguageSwitcher";
 export { ProtectedRoute } from "./ProtectedRoute";
 export { Chart } from "./Chart";
 export { CompareFrame } from "./CompareFrame";
+export { NumberField } from "./NumberField";
+export { Mozaic } from "./Mozaic";

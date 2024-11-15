@@ -47,3 +47,8 @@ export const updateCommandList = async (data) => {
   );
   return response.data;
 };
+
+export const updateExt = async (data) => {
+  const response = await axiosInstance.patch("/groups/update/ext", data);
+  return response.data;
+};

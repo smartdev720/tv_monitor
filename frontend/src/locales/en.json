@@ -110,5 +110,8 @@
     "chart": "Chart",
     "table": "Table",
     "video": "Video",
-    "compare": "Compare"
+    "compare": "Compare",
+    "configNotify": "Configuring notifications",
+    "notifyOption": "Notification Options",
+    "Cancel": "Скасувати"
 }

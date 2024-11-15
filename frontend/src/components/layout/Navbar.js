@@ -59,7 +59,7 @@ export const Navbar = () => {
   const menu = (
     <Menu>
       <Menu.Item key="1" style={{ padding: "5px 20px" }}>
-        <Button type="link" onClick={handleLogout}>
+        <Button type="link" style={{ color: "white" }} onClick={handleLogout}>
           {t("logout")}
         </Button>
       </Menu.Item>

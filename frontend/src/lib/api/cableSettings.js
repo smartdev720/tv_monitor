@@ -29,6 +29,14 @@ export const fetchCablePmtsBySettingId = async (settingId) => {
   return response.data;
 };
 
+export const fetchMultipleCableSettingsByLocations = async (locations) => {
+  const response = await axiosInstance.post(
+    "/cableSettings/get-multiple/locations",
+    locations
+  );
+  return response.data;
+};
+
 export const updateSelectedCableSetting = async (data) => {
   const response = await axiosInstance.patch(
     "/cableSettings/update-one-row",

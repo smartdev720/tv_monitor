@@ -17,7 +17,6 @@ export const useAuth = () => {
     const token = localStorage.getItem("tv_monitor_token");
     const allowedPaths = ["/auth/login", "/auth/register"];
     const userPaths = ["/main", "/charts", "/table", "/video", "/compare"];
-    debugger;
     if (!token && !allowedPaths.includes(location.pathname)) {
       navigate("/auth/login");
       return;
@@ -25,13 +24,12 @@ export const useAuth = () => {
 
     if (token && typeof token === "string") {
       const decoded = jwtDecode(token);
-      if (decoded.id && !user) {
+      if (decoded.id) {
         const fetchUser = async (id) => {
           try {
             const response = await fetchUserById(id);
             if (response.ok) {
               dispatch(setUser(response.data));
-
               if (response.data.role !== "admin") {
                 if (!userPaths.includes(location.pathname)) {
                   navigate("/main");

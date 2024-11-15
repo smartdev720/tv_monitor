@@ -22,6 +22,14 @@ export const fetchT2PmtsBySettingId = async (settingId) => {
   return response.data;
 };
 
+export const fetchMultipleT2SettingsByLocations = async (locations) => {
+  const response = await axiosInstance.post(
+    "/t2settings/get-multiple/locations",
+    locations
+  );
+  return response.data;
+};
+
 export const updateSelectedT2Setting = async (data) => {
   const response = await axiosInstance.patch(
     "/t2settings/update-one-row",

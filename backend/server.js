@@ -16,6 +16,8 @@ const cablePmtsRoutes = require("./routes/cablePmtsRoutes");
 const iptvSettingsRoutes = require("./routes/iptvSettingsRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
 const runScriptRoutes = require("./routes/runScriptRoutes");
+const extValRoutes = require("./routes/extValRoutes");
+const compareRoutes = require("./routes/compare");
 require("dotenv").config();
 require("./config/passport")(passport);
 const path = require("path");
@@ -59,7 +61,6 @@ app.get("/api/files/:cnt/:device_id", (req, res) => {
     cnt,
     device_id
   );
-  console.log(directoryPath);
   fs.readdir(directoryPath, (err, files) => {
     if (err) {
       console.error("Error reading directory:", err);
@@ -143,6 +144,18 @@ app.use(
   "/api/schedules",
   passport.authenticate("jwt", { session: false }),
   scheduleRoutes
+);
+
+app.use(
+  "/api/ext-val",
+  passport.authenticate("jwt", { session: false }),
+  extValRoutes
+);
+
+app.use(
+  "/api/compare",
+  passport.authenticate("jwt", { session: false }),
+  compareRoutes
 );
 
 const PORT = process.env.PORT || 5000;

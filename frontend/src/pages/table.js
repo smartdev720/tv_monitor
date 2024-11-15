@@ -19,9 +19,13 @@ export const TablePage = () => {
   const [currentTableData, setCurrentTableData] = useState([]);
 
   const { devices } = useSelector((state) => state.devices);
+  const { user } = useSelector((state) => state.user);
+  const { selectedGlobalData } = useSelector(
+    (state) => state.selectedGlobalData
+  );
   const { t } = useTranslation();
   const {
-    getAllDevices,
+    getDevicesById,
     getPmtsBySettingIdBeforeDate,
     getSettingsAndFillSettingId,
     loading,
@@ -165,8 +169,13 @@ export const TablePage = () => {
   }, [devices]);
 
   useEffect(() => {
-    getAllDevices();
-  }, [getAllDevices]);
+    const fetchAllSettings = async () => {
+      if (user.id) {
+        await getDevicesById(user.locations);
+      }
+    };
+    fetchAllSettings();
+  }, [user]);
 
   useEffect(() => {
     if (groupedData.length > 0) {
@@ -175,6 +184,32 @@ export const TablePage = () => {
       setCurrentTableData([]);
     }
   }, [groupedData]);
+
+  useEffect(() => {
+    const fetchSetting = async () => {
+      const { location, tvType, date } = selectedGlobalData;
+      if (location && tvType) {
+        const selectedId = selectedGlobalData.split(" ")[0];
+        const data = await getSettingsAndFillSettingId(
+          tvType,
+          Number(selectedId)
+        );
+        if (data) {
+          const options = data
+            .filter((dt) => dt.active === 1)
+            .map((dt) => ({
+              value: dt.id,
+              label: dt.name,
+            }));
+          setSettingIdDropdownValue("");
+          setSettingIdDropdown(options);
+          tableFormat();
+        }
+        setDate(date);
+      }
+    };
+    fetchSetting();
+  }, [selectedGlobalData]);
 
   if (loading) {
     return <Spinner />;

@@ -3,6 +3,7 @@ import userReducer from "./slices/userSlice";
 import devicesReducer from "./slices/devicesSlice";
 import channelsReducer from "./slices/channelsSlice";
 import groupReducer from "./slices/groupSlice";
+import selectedGlobalDataReducer from "./slices/selectedGlobalDataSlice";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     devices: devicesReducer,
     channels: channelsReducer,
     groups: groupReducer,
+    selectedGlobalData: selectedGlobalDataReducer,
   },
 });
 

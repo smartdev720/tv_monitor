@@ -12,6 +12,14 @@ export const fetchIPTVVideoListByIdAndDate = async (data) => {
   return response.data;
 };
 
+export const fetchMultipleIPTVSettingsByLocations = async (locations) => {
+  const response = await axiosInstance.post(
+    "/iptv-settings/get-multiple/locations",
+    locations
+  );
+  return response.data;
+};
+
 export const updateIPTVSetting = async (data) => {
   const response = await axiosInstance.patch("/iptv-settings/update-one", data);
   return response.data;

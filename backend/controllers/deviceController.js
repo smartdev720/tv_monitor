@@ -15,6 +15,23 @@ exports.getAllDevices = async (req, res) => {
   }
 };
 
+exports.getDevicesById = async (req, res) => {
+  try {
+    const { locations } = req.body;
+    const sql = "SELECT * FROM devices WHERE id = ? ;";
+    const devices = await Promise.all(
+      locations.map(async (location) => {
+        const device = await queryAsync(sql, [location.location_id]);
+        return device[0];
+      })
+    );
+    return res.status(200).json({ ok: true, data: devices });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};
+
 exports.updateOne = async (req, res) => {
   try {
     const { id, place, active } = req.body;

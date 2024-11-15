@@ -1,8 +1,7 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setDevices } from "../store/slices/devicesSlice";
 import { message } from "antd";
 import {
-  fetchAllDevices,
   fetchCablePmtsBySettingIdBeforeDate,
   fetchIPTVSettingsByDeviceId,
   fetchOnlyCableSettingsByDeviceId,
@@ -18,28 +17,36 @@ import {
   fetchT2ChartDataByIdAndDate,
   fetchCableChartDataByIdAndDate,
   fetchAnalogChartDataByIdAndDate,
+  fetchDevicesById,
+  fetchMultipleAnalogSettingsByLocations,
+  fetchMultipleIPTVSettingsByLocations,
+  fetchMultipleCableSettingsByLocations,
+  fetchMultipleT2SettingsByLocations,
+  fetchComparesBadData,
 } from "./api";
-import { useCallback, useState } from "react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const useGlobal = () => {
   const dispatch = useDispatch();
-
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
-  const getAllDevices = useCallback(async () => {
+  const getDevicesById = async (locations) => {
     try {
-      debugger;
       setLoading(true);
-      const response = await fetchAllDevices();
-      if (response.ok) {
-        dispatch(setDevices(response.data));
+      if (locations) {
+        const response = await fetchDevicesById({ locations });
+        if (response.ok) {
+          dispatch(setDevices(response.data));
+        }
       }
     } catch (err) {
-      console.error("Server error:", err);
+      console.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const getSettingsAndFillSettingId = async (tvType, deviceId) => {
     try {
@@ -62,7 +69,7 @@ export const useGlobal = () => {
       }
       return null;
     } catch (err) {
-      message.error("Something went wrong");
+      message.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
@@ -93,7 +100,7 @@ export const useGlobal = () => {
       }
       return null;
     } catch (err) {
-      message.error("Something went wrong");
+      message.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
@@ -114,7 +121,7 @@ export const useGlobal = () => {
       }
       return null;
     } catch (err) {
-      message.error("Something went wrong");
+      message.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
@@ -141,7 +148,7 @@ export const useGlobal = () => {
       }
       return null;
     } catch (err) {
-      message.error("Something went wrong");
+      message.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
@@ -165,20 +172,106 @@ export const useGlobal = () => {
       }
       return null;
     } catch (err) {
-      message.error("Something went wrong");
+      message.error(t("badRequest"));
     } finally {
       setLoading(false);
     }
   };
 
+  const getAllSettings = async (data) => {
+    try {
+      setLoading(true);
+      if (!data.locations) return null;
+
+      let settings = {};
+
+      // Fetch all setting types
+      const analogResponse = await fetchMultipleAnalogSettingsByLocations(data);
+      if (analogResponse.ok) {
+        settings.analog = analogResponse.data;
+      }
+
+      const iptvResponse = await fetchMultipleIPTVSettingsByLocations(data);
+      if (iptvResponse.ok) {
+        settings.iptv = iptvResponse.data;
+      }
+
+      const cableResponse = await fetchMultipleCableSettingsByLocations(data);
+      if (cableResponse.ok) {
+        settings.cable = cableResponse.data;
+      }
+
+      const t2Response = await fetchMultipleT2SettingsByLocations(data);
+      if (t2Response.ok) {
+        settings.t2 = t2Response.data;
+      }
+
+      const formattedSettings = data.locations.map((location) => {
+        const locationId = location.location_id;
+        return {
+          locationId,
+          analog: findSettingByLocationId(settings.analog, locationId),
+          cable: findSettingByLocationId(settings.cable, locationId),
+          iptv: findSettingByLocationId(settings.iptv, locationId),
+          t2: findSettingByLocationId(settings.t2, locationId),
+        };
+      });
+
+      const compares = data.locations.map((location, index) => {
+        const locationId = location.location_id;
+        const compareIds = [
+          settings.analog.compares[index]?.compareId,
+          settings.cable.compares[index]?.compareId,
+          settings.t2.compares[index]?.compareId,
+          settings.iptv.compares[index]?.compareId,
+        ].filter((compareId) => compareId !== null);
+        return { locationId, compareIds };
+      });
+
+      const compareResponse = await fetchComparesBadData({
+        compares,
+        date: data.date,
+      });
+      if (compareResponse.ok) {
+        const comparesData = compareResponse.data;
+        const completedData = formattedSettings.map((setting) => {
+          const data1 = comparesData.find(
+            (compare) => compare.locationId === setting.locationId
+          );
+          const data2 = compares.find(
+            (compare) => compare.locationId === setting.locationId
+          );
+          return {
+            ...setting,
+            compareBadData: data1.badData,
+            compare: data2.compareIds,
+          };
+        });
+        return completedData;
+      }
+    } catch (err) {
+      message.error(t("badRequest"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const findSettingByLocationId = (settings, locationId) => {
+    const mainSetting = settings?.main.find((s) => s.locationId === locationId);
+    return mainSetting
+      ? { id: mainSetting.settingId, badData: mainSetting.badData }
+      : { id: null, badData: null };
+  };
+
   return {
-    getAllDevices,
+    getDevicesById,
     getSettingsAndFillSettingId,
     getPmtsBySettingIdBeforeDate,
     getVideoListByIdAndDate,
     getPmtsBySettingId,
     setLoading,
     getChartDataByIdAndDate,
+    getAllSettings,
     loading,
   };
 };

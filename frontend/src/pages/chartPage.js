@@ -18,8 +18,13 @@ export const ChartPage = () => {
   const [chartData, setChartData] = useState([]);
 
   const { devices } = useSelector((state) => state.devices);
+  const { selectedGlobalData } = useSelector(
+    (state) => state.selectedGlobalData
+  );
+  const { user } = useSelector((state) => state.user);
+
   const {
-    getAllDevices,
+    getDevicesById,
     getSettingsAndFillSettingId,
     getChartDataByIdAndDate,
     loading,
@@ -67,7 +72,7 @@ export const ChartPage = () => {
     if (tvTypeDropdownValue !== "") {
       const data = await getSettingsAndFillSettingId(
         tvTypeDropdownValue,
-        value
+        selectedDevice.id
       );
       if (data) {
         const options = data
@@ -170,8 +175,39 @@ export const ChartPage = () => {
   }, [devices]);
 
   useEffect(() => {
-    getAllDevices();
-  }, [getAllDevices]);
+    const fetchAllSettings = async () => {
+      if (user.id) {
+        await getDevicesById(user.locations);
+      }
+    };
+    fetchAllSettings();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchSetting = async () => {
+      const { location, tvType, date } = selectedGlobalData;
+      if (location && tvType) {
+        const selectedId = selectedGlobalData.split(" ")[0];
+        const data = await getSettingsAndFillSettingId(
+          tvType,
+          Number(selectedId)
+        );
+        if (data) {
+          const options = data
+            .filter((dt) => dt.active === 1)
+            .map((dt) => ({
+              value: dt.id,
+              label: tvType === "analog_settings" ? dt.program_name : dt.name,
+            }));
+          setSettingIdDropdown(options);
+          setSettingIdDropdownValue("");
+          setChartData([]);
+        }
+        setDate(date);
+      }
+    };
+    fetchSetting();
+  }, [selectedGlobalData]);
 
   if (loading) {
     return <Spinner />;

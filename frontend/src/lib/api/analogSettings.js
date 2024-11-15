@@ -24,6 +24,14 @@ export const fetchAnalogChartDataByIdAndDate = async (data) => {
   return response.data;
 };
 
+export const fetchMultipleAnalogSettingsByLocations = async (locations) => {
+  const response = await axiosInstance.post(
+    "/analog-settings/get-multiple/locations",
+    locations
+  );
+  return response.data;
+};
+
 export const updateAnalogSetting = async (data) => {
   const response = await axiosInstance.patch(
     "/analog-settings/update-one",

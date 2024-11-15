@@ -1,4 +1,4 @@
-export { fetchAllDevices, updateDevice } from "./devices";
+export { fetchAllDevices, fetchDevicesById, updateDevice } from "./devices";
 export {
   fetchSequence6,
   fetchSequence4,
@@ -15,6 +15,7 @@ export {
   updateAnalogSetting,
   fetchAnalogVideoListByIdAndDate,
   fetchOnlyAnalogSettingsByDeviceId,
+  fetchMultipleAnalogSettingsByLocations,
 } from "./analogSettings";
 export {
   fetchAllGroups,
@@ -35,6 +36,7 @@ export {
   fetchT2ChartDataByIdAndDate,
   updateSelectedT2Setting,
   deleteT2Setting,
+  fetchMultipleT2SettingsByLocations,
 } from "./t2settings";
 export {
   fetchT2PmtsBySettingIdBeforeDate,
@@ -49,6 +51,7 @@ export {
   fetchCableChartDataByIdAndDate,
   updateSelectedCableSetting,
   deleteCableSetting,
+  fetchMultipleCableSettingsByLocations,
 } from "./cableSettings";
 export {
   fetchCablePmtsBySettingIdBeforeDate,
@@ -59,6 +62,7 @@ export {
   fetchIPTVVideoListByIdAndDate,
   updateIPTVSetting,
   deleteIPTVSetting,
+  fetchMultipleIPTVSettingsByLocations,
 } from "./iptvSettings";
 export {
   runIPTVSettings,
@@ -68,3 +72,5 @@ export {
 } from "./scriptRun";
 export { login, userRegister, fetchUserById } from "./user";
 export { fetchAllSchedules, insertSchedule, updateSchedule } from "./schedule";
+export { updateExtVal, updateExtGroupVal } from "./ext_val";
+export { fetchComparesBadData } from "./compare";

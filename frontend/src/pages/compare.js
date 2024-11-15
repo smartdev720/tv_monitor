@@ -1,6 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Col, DatePicker, message, Radio, Row, Table } from "antd";
-import { CompareFrame, Dropdown, Spinner } from "../components/common";
+import {
+  Button,
+  Col,
+  DatePicker,
+  message,
+  Radio,
+  Row,
+  Table,
+  Tooltip,
+} from "antd";
+import {
+  CompareFrame,
+  CustomModal,
+  Dropdown,
+  NumberField,
+  Spinner,
+} from "../components/common";
 import {
   fetchAllGroups,
   fetchDat99ByGroupIdAndDate,
@@ -17,6 +32,7 @@ import {
 } from "../constant/func";
 import { useGlobal } from "../lib/globalFunc";
 import { useTranslation } from "react-i18next";
+import { updateExtGroupVal } from "../lib/api";
 
 export const Compare = () => {
   const [groupOptions, setGroupOptions] = useState([]);
@@ -28,11 +44,14 @@ export const Compare = () => {
   const [selectedRowKey, setSelectedRowKey] = useState("");
   const [compareData, setCompareData] = useState([]);
   const [leaderId, setLeaderId] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [modalInput, setModalInput] = useState({});
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const dispatch = useDispatch();
   const { groups } = useSelector((state) => state.groups);
   const { devices } = useSelector((state) => state.devices);
-  const { getAllDevices } = useGlobal();
+  const { user } = useSelector((state) => state.user);
   const { t } = useTranslation();
 
   // Table columns
@@ -198,18 +217,42 @@ export const Compare = () => {
     setSelectedRow(record);
     await getDat99ResByCnt(key, record);
   };
+
+  const handleModalInputChange = (name, value) => {
+    setModalInput({ ...modalInput, [name]: value });
+  };
+
+  const handleModalOk = async () => {
+    try {
+      setLoading(true);
+      const data = {
+        ...modalInput,
+        settingId: groupDropdownValue.split(" ")[0],
+        userId: user.id,
+      };
+      const response = await updateExtGroupVal(data);
+      if (response.ok) {
+        message.success(response.message);
+        setModal(false);
+        setModalInput({});
+      }
+    } catch (err) {
+      message.error(t("badRequest"));
+    } finally {
+      setLoading(false);
+    }
+  };
   ////////////////////////////////////////
 
   // Hooks
   useEffect(() => {
     getAllGroups();
-    getAllDevices();
-  }, [getAllGroups, getAllDevices]);
+  }, [getAllGroups]);
 
   useEffect(() => {
     if (groups.length > 0) {
       const options = groups.map((group) => ({
-        value: `${group.id} ${group.model_id}`,
+        value: `${group.id} ${group.model_id} ${group.name}`,
         label: `${group.id} ${group.name}`,
       }));
       setGroupOptions(options);
@@ -241,6 +284,16 @@ export const Compare = () => {
           />
         </Col>
       </Row>
+      <Row gutter={16}>
+        <Col span={3}></Col>
+        <Col span={1} style={{ marginLeft: 20 }}>
+          <Tooltip placement="rightTop" title="Configuring notifications">
+            <Button type="link" onClick={() => setModal(true)}>
+              <img src="./notify.svg" alt="notify" />
+            </Button>
+          </Tooltip>
+        </Col>
+      </Row>
       <Row gutter={16} style={{ marginTop: 20 }}>
         <Col span={4}>
           <Table
@@ -265,6 +318,63 @@ export const Compare = () => {
           )}
         </Col>
       </Row>
+      <CustomModal
+        isSave={true}
+        title={t("notifyOption")}
+        open={modal}
+        handleCancel={() => setModal(false)}
+        confirmLoading={confirmLoading}
+        handleDelete={() => setModalInput({})}
+        isDelete={true}
+        handleOk={handleModalOk}
+      >
+        <Row gutter={16}>
+          <Col span={24}>
+            <h3 style={{ color: "white" }}>
+              Group{" "}
+              {groupDropdownValue !== ""
+                ? `${groupDropdownValue.split(" ")[0]} ${
+                    groupDropdownValue.split(" ")[2]
+                  }`
+                : ""}
+            </h3>
+          </Col>
+          <Col
+            span={12}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <NumberField
+              placeholder="Delay Min"
+              name="delayMin"
+              onChange={(value) => handleModalInputChange("delayMin", value)}
+              tooltip="SEC"
+              value={modalInput.delayMin}
+              min={-100}
+            />
+          </Col>
+          <Col
+            span={12}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <NumberField
+              placeholder="Delay Max"
+              name="delayMax"
+              onChange={(value) => handleModalInputChange("delayMax", value)}
+              tooltip="SEC"
+              value={modalInput.delayMax}
+              min={-100}
+            />
+          </Col>
+        </Row>
+      </CustomModal>
     </div>
   );
 };

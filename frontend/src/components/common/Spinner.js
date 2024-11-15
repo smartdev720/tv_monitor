@@ -12,7 +12,7 @@ export const Spinner = () => {
             fontSize: "1.2em",
             textAlign: "center",
             marginTop: 180,
-            color: "#181818",
+            color: "rgb(0, 112, 255)",
           }}
         >
           {t("pleaseWait")}
