@@ -16,9 +16,12 @@ export const Dropdown = ({
         display: "block",
       }}
       onChange={handleChange}
-      options={options}
       value={value}
       disabled={disabled}
+      options={options.map((option) => ({
+        ...option,
+        style: option.style || {},
+      }))}
     />
   );
 };

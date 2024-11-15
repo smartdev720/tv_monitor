@@ -18,6 +18,7 @@ const scheduleRoutes = require("./routes/scheduleRoutes");
 const runScriptRoutes = require("./routes/runScriptRoutes");
 const extValRoutes = require("./routes/extValRoutes");
 const compareRoutes = require("./routes/compare");
+const messageRoutes = require("./routes/messageRoutes");
 require("dotenv").config();
 require("./config/passport")(passport);
 const path = require("path");
@@ -156,6 +157,12 @@ app.use(
   "/api/compare",
   passport.authenticate("jwt", { session: false }),
   compareRoutes
+);
+
+app.use(
+  "/api/message",
+  passport.authenticate("jwt", { session: false }),
+  messageRoutes
 );
 
 const PORT = process.env.PORT || 5000;

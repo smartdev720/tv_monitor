@@ -219,3 +219,20 @@ exports.updateCommandList = async (req, res) => {
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 };
+
+exports.getGroupByBadDataCnt = async (req, res) => {
+  try {
+    const { cnt } = req.params;
+    let sql = "SELECT group_id FROM Dat_99 WHERE cnt = ?;";
+    const groupId = await queryAsync(sql, [cnt]);
+    if (groupId.length == 0 || !groupId) {
+      return res.status(404).json({ ok: false, message: "Group not found" });
+    }
+    sql = "SELECT name, id FROM groups_table WHERE id = ?;";
+    const group = await queryAsync(sql, [groupId[groupId.length - 1].group_id]);
+    return res.status(200).json({ ok: true, data: group[0] });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+};

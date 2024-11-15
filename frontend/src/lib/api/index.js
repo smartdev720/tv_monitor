@@ -27,6 +27,7 @@ export {
   deleteGroup,
   updateCommandList,
   getFileNamesFromBackend,
+  fetchGroupByBadDataCnt,
 } from "./groups";
 export { fetchAllChannels } from "./channels";
 export {
@@ -74,3 +75,4 @@ export { login, userRegister, fetchUserById } from "./user";
 export { fetchAllSchedules, insertSchedule, updateSchedule } from "./schedule";
 export { updateExtVal, updateExtGroupVal } from "./ext_val";
 export { fetchComparesBadData } from "./compare";
+export { fetchNewMessageByUserId, updateCheckedMessageById } from "./messages";

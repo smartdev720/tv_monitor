@@ -25,6 +25,11 @@ export const fetchDat99ResByCnt = async (cnt) => {
   return response.data;
 };
 
+export const fetchGroupByBadDataCnt = async (cnt) => {
+  const response = await axiosInstance.get(`/groups/get/bad-data/${cnt}`);
+  return response.data;
+};
+
 export const getFileNamesFromBackend = async (cnt, deviceId) => {
   const response = await axiosInstance.get(`/files/${cnt}/${deviceId}`);
   return response.data;

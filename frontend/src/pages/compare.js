@@ -47,12 +47,15 @@ export const Compare = () => {
   const [modal, setModal] = useState(false);
   const [modalInput, setModalInput] = useState({});
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [badGroups, setBadGroups] = useState([]);
 
   const dispatch = useDispatch();
   const { groups } = useSelector((state) => state.groups);
   const { devices } = useSelector((state) => state.devices);
   const { user } = useSelector((state) => state.user);
   const { t } = useTranslation();
+
+  const { getBadData, getGroupByBadDataCnt, getDevicesById } = useGlobal();
 
   // Table columns
   const columns = [
@@ -88,10 +91,10 @@ export const Compare = () => {
     }
   }, []);
 
-  const getDat99ByGroupIdAndDate = async (data) => {
+  const getDat99ByGroupIdAndDate = async (odata) => {
     try {
       setLoading(true);
-      const response = await fetchDat99ByGroupIdAndDate(data);
+      const response = await fetchDat99ByGroupIdAndDate(odata);
       if (response.ok) {
         const { data } = response;
         const dSource = data.map((dt) => {
@@ -155,9 +158,10 @@ export const Compare = () => {
             return null;
           })
         );
-        const leader = cData.find((cd) => cd.deviceId === leaderId);
+        const ccData = cData.filter((cd) => cd !== null);
+        const leader = ccData.find((ccd) => ccd.deviceId === Number(leaderId));
         const others = cData.filter(
-          (item) => item !== null && item.deviceId !== leaderId
+          (item) => item !== null && item.deviceId !== Number(leaderId)
         );
         setCompareData(leader ? [leader, ...others] : others);
         setLeaderId(null);
@@ -190,10 +194,20 @@ export const Compare = () => {
   // Handle changes
   const handleGroupDropdownChange = async (value) => {
     setGroupDropdownValue(value);
+    const leaderId = value.split(" ")[1];
+    setLeaderId(leaderId);
     if (date) {
       const formattedDate = getDateWithISO(date);
-      const leaderId = value.split(" ")[1];
-      setLeaderId(leaderId);
+      const badData = await getBadData(formattedDate);
+      const bGroups = await Promise.all(
+        badData.map(async (bd) => {
+          const group = await getGroupByBadDataCnt(bd.cnt);
+          if (group) {
+            return group;
+          }
+        })
+      );
+      setBadGroups(bGroups);
       await getDat99ByGroupIdAndDate({
         id: value.split(" ")[0],
         date: formattedDate,
@@ -205,8 +219,18 @@ export const Compare = () => {
     setDate(date);
     if (date && groupDropdownValue !== "") {
       const formattedDate = getDateWithISO(date);
+      const badData = await getBadData(formattedDate);
+      const bGroups = await Promise.all(
+        badData.map(async (bd) => {
+          const group = await getGroupByBadDataCnt(bd.cnt);
+          if (group) {
+            return group;
+          }
+        })
+      );
+      setBadGroups(bGroups);
       await getDat99ByGroupIdAndDate({
-        id: groupDropdownValue,
+        id: groupDropdownValue.split(" ")[0],
         date: formattedDate,
       });
     }
@@ -242,22 +266,59 @@ export const Compare = () => {
       setLoading(false);
     }
   };
+
   ////////////////////////////////////////
 
   // Hooks
+
   useEffect(() => {
     getAllGroups();
   }, [getAllGroups]);
 
   useEffect(() => {
+    const fetchAllSettings = async () => {
+      if (user.id) {
+        await getDevicesById(user.locations);
+      }
+    };
+    fetchAllSettings();
+  }, [user]);
+
+  useEffect(() => {
     if (groups.length > 0) {
-      const options = groups.map((group) => ({
-        value: `${group.id} ${group.model_id} ${group.name}`,
-        label: `${group.id} ${group.name}`,
-      }));
+      const options = groups.map((group) => {
+        const isBadGroup = badGroups.some((bd) => bd.id === group.id);
+        return {
+          value: `${group.id} ${group.model_id} ${group.name}`,
+          label: `${group.id} ${group.name}`,
+          style: isBadGroup ? { color: "red" } : undefined,
+        };
+      });
+
       setGroupOptions(options);
     }
-  }, [groups]);
+  }, [groups, badGroups, setGroupOptions]);
+
+  useEffect(() => {
+    const fetchBadData = async () => {
+      try {
+        const date = new Date().toISOString().split("T")[0];
+        const badData = await getBadData(date);
+        const bGroups = await Promise.all(
+          badData.map(async (bd) => {
+            const group = await getGroupByBadDataCnt(bd.cnt);
+            if (group) {
+              return group;
+            }
+          })
+        );
+        setBadGroups(bGroups);
+      } catch (err) {
+        message.error(t("badRequest"));
+      }
+    };
+    fetchBadData();
+  }, []);
   ////////////////////////////////////////
 
   if (loading) {

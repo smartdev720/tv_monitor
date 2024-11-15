@@ -187,7 +187,7 @@ export const ChartPage = () => {
     const fetchSetting = async () => {
       const { location, tvType, date } = selectedGlobalData;
       if (location && tvType) {
-        const selectedId = selectedGlobalData.split(" ")[0];
+        const selectedId = location.split(" ")[0];
         const data = await getSettingsAndFillSettingId(
           tvType,
           Number(selectedId)

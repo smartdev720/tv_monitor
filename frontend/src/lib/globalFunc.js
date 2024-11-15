@@ -23,6 +23,7 @@ import {
   fetchMultipleCableSettingsByLocations,
   fetchMultipleT2SettingsByLocations,
   fetchComparesBadData,
+  fetchGroupByBadDataCnt,
 } from "./api";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -217,37 +218,15 @@ export const useGlobal = () => {
         };
       });
 
-      const compares = data.locations.map((location, index) => {
-        const locationId = location.location_id;
-        const compareIds = [
-          settings.analog.compares[index]?.compareId,
-          settings.cable.compares[index]?.compareId,
-          settings.t2.compares[index]?.compareId,
-          settings.iptv.compares[index]?.compareId,
-        ].filter((compareId) => compareId !== null);
-        return { locationId, compareIds };
-      });
-
       const compareResponse = await fetchComparesBadData({
-        compares,
         date: data.date,
       });
       if (compareResponse.ok) {
-        const comparesData = compareResponse.data;
-        const completedData = formattedSettings.map((setting) => {
-          const data1 = comparesData.find(
-            (compare) => compare.locationId === setting.locationId
-          );
-          const data2 = compares.find(
-            (compare) => compare.locationId === setting.locationId
-          );
-          return {
-            ...setting,
-            compareBadData: data1.badData,
-            compare: data2.compareIds,
-          };
-        });
-        return completedData;
+        const compareCnts = compareResponse.data;
+        return {
+          setting: formattedSettings,
+          compareCnts,
+        };
       }
     } catch (err) {
       message.error(t("badRequest"));
@@ -263,6 +242,33 @@ export const useGlobal = () => {
       : { id: null, badData: null };
   };
 
+  const getGroupByBadDataCnt = async (cnt) => {
+    try {
+      setLoading(true);
+      const response = await fetchGroupByBadDataCnt(cnt);
+      if (response.ok) {
+        return response.data;
+      }
+      return null;
+    } catch (err) {
+      message.error(t("badRequest"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getBadData = async (date) => {
+    try {
+      const response = await fetchComparesBadData({ date });
+      if (response.ok) {
+        return response.data;
+      }
+      return null;
+    } catch (err) {
+      message.error(t("badRequest"));
+    }
+  };
+
   return {
     getDevicesById,
     getSettingsAndFillSettingId,
@@ -272,6 +278,8 @@ export const useGlobal = () => {
     setLoading,
     getChartDataByIdAndDate,
     getAllSettings,
+    getGroupByBadDataCnt,
+    getBadData,
     loading,
   };
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Checkbox, Col, message, Row, Tooltip } from "antd";
+import { Button, Card, Checkbox, Col, message, Row, Tooltip } from "antd";
 import {
   CustomModal,
   Mozaic,
@@ -10,7 +10,7 @@ import {
 import { UserDropdownGroup } from "../components/common/user/userDropdownGroup";
 import { useTranslation } from "react-i18next";
 import { useGlobal } from "../lib/globalFunc";
-import { updateExtVal } from "../lib/api";
+import { fetchGroupByBadDataCnt, updateExtVal } from "../lib/api";
 import { getDateWithISO } from "../constant/func";
 import {
   setSelectedGlobalLocation,
@@ -30,6 +30,8 @@ export const Main = () => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [notifyInput, setNotifyInput] = useState({});
   const [mozaicData, setMozaicData] = useState([]);
+  const [badDataGroup, setBadDataGroup] = useState({});
+  const [compared, setCompared] = useState(false);
 
   const dispatch = useDispatch();
   const { devices } = useSelector((state) => state.devices);
@@ -39,6 +41,7 @@ export const Main = () => {
     getDevicesById,
     getSettingsAndFillSettingId,
     getAllSettings,
+    getGroupByBadDataCnt,
     loading,
   } = useGlobal();
 
@@ -187,7 +190,18 @@ export const Main = () => {
           locations: user.locations,
           date: new Date().toISOString().split("T")[0],
         });
-        setMozaicData(data);
+        setMozaicData(data.setting);
+        if (data.compareCnts.length > 0) {
+          setCompared(true);
+          const group = await getGroupByBadDataCnt(
+            data.compareCnts[data.compareCnts.length - 1].cnt
+          );
+          if (group.id) {
+            setBadDataGroup(group);
+          }
+        } else {
+          setCompared(false);
+        }
       }
     };
     fetchAllSettings();
@@ -229,6 +243,34 @@ export const Main = () => {
           </Tooltip>
         </Col>
       </Row>
+      {compared && (
+        <Row
+          gutter={16}
+          style={{
+            marginTop: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Col span={6}>
+            <Card
+              title="Compare"
+              style={{
+                background: `${
+                  badDataGroup.id ? "#c54d4d" : "rgb(58, 151, 87)"
+                }`,
+              }}
+            >
+              {badDataGroup.id && (
+                <p
+                  style={{ textAlign: "center", color: "white" }}
+                >{`${badDataGroup.id} ${badDataGroup.name}`}</p>
+              )}
+            </Card>
+          </Col>
+        </Row>
+      )}
       <Row gutter={16}>
         {mozaicData.length > 0 &&
           mozaicData.map((mozaic) => <Mozaic item={mozaic} />)}

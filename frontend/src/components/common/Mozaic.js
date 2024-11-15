@@ -116,23 +116,6 @@ export const Mozaic = ({ item }) => {
             )}
           </div>
         )}
-
-        {item.compare.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span style={{ color: "white", marginRight: 20 }}>Compare</span>
-            <Button
-              color={`${item.compareBadData.length > 0 ? "danger" : "primary"}`}
-              variant="solid"
-              style={{ width: 10, height: 33, borderRadius: "50%" }}
-            />
-          </div>
-        )}
       </Card>
     </Col>
   );

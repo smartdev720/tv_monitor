@@ -17,6 +17,16 @@ export const useAuth = () => {
     const token = localStorage.getItem("tv_monitor_token");
     const allowedPaths = ["/auth/login", "/auth/register"];
     const userPaths = ["/main", "/charts", "/table", "/video", "/compare"];
+    const adminPath = [
+      "/devices",
+      "/analog-setting",
+      "/dvb-t2-setting",
+      "/dvb-c-setting",
+      "/iptv-setting",
+      "/sequence",
+      "/groups",
+      "/schedules",
+    ];
     if (!token && !allowedPaths.includes(location.pathname)) {
       navigate("/auth/login");
       return;
@@ -24,7 +34,7 @@ export const useAuth = () => {
 
     if (token && typeof token === "string") {
       const decoded = jwtDecode(token);
-      if (decoded.id) {
+      if (decoded.id && !user.id) {
         const fetchUser = async (id) => {
           try {
             const response = await fetchUserById(id);
@@ -35,7 +45,9 @@ export const useAuth = () => {
                   navigate("/main");
                 }
               } else {
-                navigate("/devices");
+                if (!adminPath.includes(location.pathname)) {
+                  navigate("/devices");
+                }
               }
             }
           } catch (err) {

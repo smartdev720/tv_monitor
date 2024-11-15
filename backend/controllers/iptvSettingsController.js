@@ -40,19 +40,6 @@ exports.getMultipleIPTVSettingsByLocationIds = async (req, res) => {
         };
       })
     );
-
-    sql =
-      "SELECT id FROM group_composition WHERE setting_id = ? AND command_id = 7;";
-    const compares = await Promise.all(
-      settings.map(async (setting) => {
-        if (setting.settingId === null) return { groupId: null };
-        const compas = await queryAsync(sql, [setting.settingId]);
-        return {
-          compareId: compas.length > 0 ? compas[0].id : null,
-        };
-      })
-    );
-
     sql = "SELECT cnt FROM Dat_7 WHERE settings_id = ? AND DATE(time_dat) = ?;";
     const cnts = await Promise.all(
       settings.map(async (setting) => {
@@ -81,7 +68,7 @@ exports.getMultipleIPTVSettingsByLocationIds = async (req, res) => {
       settingId: setting.settingId,
       badData: badData[index].badDataId,
     }));
-    return res.status(200).json({ ok: true, data: { main, compares } });
+    return res.status(200).json({ ok: true, data: { main } });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ok: false, message: "Server error" });

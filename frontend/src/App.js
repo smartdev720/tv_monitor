@@ -18,10 +18,15 @@ import {
   ChartPage,
   Compare,
 } from "./pages";
-import { FloatButton } from "antd";
+import { Badge, Button, FloatButton } from "antd";
 import { ProtectedRoute } from "./components/common";
+import { MessageLayout } from "./components/layout/MessageLayout";
+import { NotificationOutlined } from "@ant-design/icons";
+import { useState } from "react";
 
 function App() {
+  const [notifyCounts, setNotifyCounts] = useState(0);
+  const [open, setOpen] = useState(false);
   const location = useLocation();
   const isLoginLocation = location.pathname === "/auth/login";
   const isUserRegisterLocation = location.pathname === "/auth/register";
@@ -74,6 +79,34 @@ function App() {
         <Route path="/chart" element={<ChartPage />} />
         <Route path="/compare" element={<Compare />} />
       </Routes>
+      <MessageLayout
+        open={open}
+        setOpen={setOpen}
+        setNotifyCounts={setNotifyCounts}
+      />
+      <div
+        style={{
+          position: "fixed",
+          right: 50,
+          bottom: 50,
+          zIndex: 0,
+        }}
+      >
+        <Badge count={notifyCounts}>
+          <Button
+            style={{
+              borderRadius: "50%",
+              width: 50,
+              height: 50,
+            }}
+            color="primary"
+            variant="solid"
+            onClick={() => setOpen(true)}
+          >
+            <NotificationOutlined />
+          </Button>
+        </Badge>
+      </div>
       <FloatButton.BackTop />
     </>
   );
