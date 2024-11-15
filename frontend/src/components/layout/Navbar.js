@@ -49,6 +49,7 @@ export const Navbar = () => {
     .toString();
 
   const handleLogout = () => {
+    debugger;
     localStorage.removeItem("tv_monitor_token");
     dispatch(setUser(null));
     navigate("/auth/login");

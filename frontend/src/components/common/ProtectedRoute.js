@@ -8,6 +8,7 @@ export const ProtectedRoute = ({ element }) => {
   const isAdmin = user?.role === "admin";
 
   if (!isAuthenticated || !isAdmin) {
+    debugger;
     return <Navigate to="/main" replace />;
   }
 

@@ -34,7 +34,8 @@ export const useAuth = () => {
 
     if (token && typeof token === "string") {
       const decoded = jwtDecode(token);
-      if (decoded.id && !user.id) {
+      debugger;
+      if (decoded.id && (!user || typeof user !== "object")) {
         const fetchUser = async (id) => {
           try {
             const response = await fetchUserById(id);

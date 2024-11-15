@@ -117,7 +117,7 @@ export const Main = () => {
   const handleDatePickerChange = async (date) => {
     setDate(date);
     setSelectedGlobalDate(date);
-    if (date && user.id) {
+    if (date && user && user.id) {
       const formattedDate = getDateWithISO(date);
       const data = await getAllSettings({
         locations: user.locations,
@@ -184,23 +184,25 @@ export const Main = () => {
 
   useEffect(() => {
     const fetchAllSettings = async () => {
-      if (user.id) {
+      if (user && user.id) {
         await getDevicesById(user.locations);
         const data = await getAllSettings({
           locations: user.locations,
           date: new Date().toISOString().split("T")[0],
         });
-        setMozaicData(data.setting);
-        if (data.compareCnts.length > 0) {
-          setCompared(true);
-          const group = await getGroupByBadDataCnt(
-            data.compareCnts[data.compareCnts.length - 1].cnt
-          );
-          if (group.id) {
-            setBadDataGroup(group);
+        if (data) {
+          setMozaicData(data.setting);
+          if (data.compareCnts.length > 0) {
+            setCompared(true);
+            const group = await getGroupByBadDataCnt(
+              data.compareCnts[data.compareCnts.length - 1].cnt
+            );
+            if (group && group.id) {
+              setBadDataGroup(group);
+            }
+          } else {
+            setCompared(false);
           }
-        } else {
-          setCompared(false);
         }
       }
     };

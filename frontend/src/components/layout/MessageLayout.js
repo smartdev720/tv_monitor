@@ -19,7 +19,6 @@ export const MessageLayout = ({ open, setOpen, setNotifyCounts }) => {
   useEffect(() => {
     const getNewMessages = async (userId) => {
       try {
-        debugger;
         const response = await fetchNewMessageByUserId(userId);
         if (response.ok) {
           setMessages(response.data);
@@ -28,7 +27,8 @@ export const MessageLayout = ({ open, setOpen, setNotifyCounts }) => {
         message.error(t("badRequest"));
       }
     };
-    if (user.id) {
+    debugger;
+    if (user && user.id) {
       getNewMessages(user.id);
       const intervalId = setInterval(() => {
         getNewMessages(user.id);

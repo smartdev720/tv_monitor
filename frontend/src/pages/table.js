@@ -170,7 +170,7 @@ export const TablePage = () => {
 
   useEffect(() => {
     const fetchAllSettings = async () => {
-      if (user.id) {
+      if (user && user.id) {
         await getDevicesById(user.locations);
       }
     };
